@@ -1,4 +1,4 @@
-import ottPayment from '../models/paymentModel.js';
+import ottPayment from '../models/ottpaymentModel.js';
 import User from '../models/userModel.js';
 import ottRoom from '../models/ottModel.js';
 
@@ -48,6 +48,14 @@ const transferToLeader = async (roomId) => {
 
     leader.totalPoint += totalPrice;
     await leader.save();
+
+    const payment = await ottPayment.create({
+      userId,
+      price,
+      roomId,
+      type: 'trans_to_leader',
+      status: '구매완료',
+    });
 
   } catch (error) {
     throw new Error(`포인트 전송 오류: ${error.message}`);

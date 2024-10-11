@@ -2,7 +2,7 @@ import GroupShopping from '../models/groupshoppingModel.js';
 import groupPaymentController from './groupPaymentController.js'
 import PurchaseUser from '../models/buyerModel.js';
 import User from '../models/userModel.js';
-import groupLike from '../models/likedModel.js';
+import groupLike from '../models/grouplikeModel.js';
 
 const addProduct = async (req, res) => {
   try {
@@ -61,7 +61,7 @@ const registPurchase = async (req, res) => {
   try {
     const { productId: productIdFromBody, userName, address, phone, selectOptions } = req.body;
 
-    const user = await User.findOne({ userId }); // User 모델에서 사용자 정의 userId로 조회
+    const user = await User.findOne({ userId });
     if (!user) {
       return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
     }
@@ -90,7 +90,17 @@ const registPurchase = async (req, res) => {
 
     const totalPrice = product.price + product.leaderFee;
 
-    await groupPaymentController.transferToPlatform(userId, userName, totalPrice, productIdFromBody);
+    // 포인트 전송을 시도하고 오류가 발생하면 구매를 취소합니다.
+    try {
+      await groupPaymentController.transferToPlatform(userId, userName, totalPrice, productIdFromBody);
+    } catch (error) {
+      // 포인트 전송 실패 시 구매를 취소하고 에러 메시지를 반환합니다.
+      await PurchaseUser.deleteOne({ _id: newPurchase._id }); // 구매 기록 삭제
+      product.totalPurchasers -= 1; // 총 구매자 수 감소
+      await product.save();
+
+      return res.status(500).json(console.error(error));
+    }
 
     res.status(201).json({ message: '구매가 완료되었습니다.', newPurchase });
   } catch (error) {
@@ -121,9 +131,7 @@ const confirmPurchase = async (req, res) => {
 
     if (allConfirmed) {
       const totalAmount = product.totalPurchasers * (product.price + product.leaderFee);
-      console.log(totalAmount)
       await groupPaymentController.transferToLeader(product._id);
-
       res.status(200).json({ message: '모든 구매가 완료되었으며, 판매자에게 포인트가 전송되었습니다.' });
     } else {
       res.status(200).json({ message: '구매가 완료되었습니다.' });
@@ -196,13 +204,11 @@ const updatePurchaseStatus = async (req, res) => {
   }
 };
 
-// 좋아요 토글 기능 구현
 const groupLikeHandle = async (req, res) => {
   const { productId } = req.params;
   const { userId } = req.body;
 
   try {
-    // 해당 유저가 해당 상품에 대해 좋아요를 눌렀는지 확인
     const existingLike = await groupLike.findOne({ userId, productId });
 
     if (existingLike) {

@@ -23,8 +23,8 @@ const takeoverRoomSchema = new mongoose.Schema({
       type: String, 
       enum: ["진행중","마감"],
       default: "진행중"
-    }
+    },
 });
 
-const takeoverRoom = mongoose.model('takeoverRoom', takeoverRoomSchema);
-export default takeoverRoom;
+const TakeoverRoom = mongoose.model('TakeoverRoom', takeoverRoomSchema);
+export default TakeoverRoom;

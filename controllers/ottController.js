@@ -1,12 +1,14 @@
 import EnterRoom from '../models/ottenterModel.js';
 import ottRoom from '../models/ottModel.js';
 import ottPaymentController from './ottPaymentController.js';
+import ottLike from '../models/grouplikeModel.js';
+import User from '../models/userModel.js';
 
 const createRoom = async (req, res) => {
   const { userId } = req.params;
-  const { roomName, ottPlatform, plan, maxParticipants, duration, adminFee } = req.body;
+  const { roomName, ottPlatform, plan, maxParticipants, duration, leaderFee, price } = req.body;
 
-  if (!roomName || !ottPlatform || !plan || !maxParticipants || !duration || !adminFee) {
+  if (!roomName || !ottPlatform || !plan || !maxParticipants || !duration || !leaderFee || !price) {
       return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
   }
 
@@ -23,6 +25,7 @@ const createRoom = async (req, res) => {
           plan,
           maxParticipants,
           duration,
+          price,
           leaderFee,
       });
 
@@ -36,7 +39,7 @@ const createRoom = async (req, res) => {
 
 const getAllRooms = async (req, res) => {
   try {
-      const rooms = await ottRoom.find({ status: { $ne: '마감' } }, { name: 1, plan: 1, price: 1, _id: 1, image: 1, deadline: 1 });
+      const rooms = await ottRoom.find({ status: { $ne: '마감' } }, { roomName: 1, ottPlatform:1, plan: 1, price: 1, _id: 1, duration: 1 });
 
       if (!rooms || rooms.length === 0) {
           return res.status(404).json({ error: '현재 등록된 방이 없습니다.' });
@@ -59,15 +62,12 @@ const enterRoom = async (req, res) => {
             return res.status(404).json({ error: '해당 방을 찾을 수 없습니다.' });
         }
 
-        // 현재 참여자 수를 가져옵니다
         const currentParticipants = await EnterRoom.countDocuments({ roomId });
 
-        // 인원이 가득 찼는지 확인
         if (room.maxParticipants <= currentParticipants) {
             return res.status(400).json({ error: '해당 방은 이미 인원이 가득 찼습니다.' });
         }
 
-        // 방에 입장한 정보를 저장
         const enterRoomData = new EnterRoom({
             roomId,
             userId
@@ -75,7 +75,6 @@ const enterRoom = async (req, res) => {
 
         await enterRoomData.save();
 
-        // 성공적으로 저장 후 채팅방으로 이동할 URL 응답
         res.status(200).json({ message: '방에 입장하였습니다.', chatRoomURL: `/chat/${roomId}` });
     } catch (error) {
         console.error(error);
@@ -116,7 +115,7 @@ const payingForOtt = async (req, res) => {
 
     await ottPaymentController.transferToPlatform(userId, totalPrice, roomIdFromBody);
 
-    res.status(201).json({ message: '구매가 완료되었습니다.', newPurchase });
+    res.status(201).json({ message: '구매가 완료되었습니다.'});
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: '구매 과정에서 오류가 발생하였습니다.' });
@@ -143,11 +142,38 @@ const closeParty = async (req, res) => {
   }
 };
 
+const ottLikeHandle = async (req, res) => {
+  const { roomId } = req.params;
+  const { userId } = req.body;
+
+  try {
+    const existingLike = await ottLike.findOne({ userId, roomId });
+
+    if (existingLike) {
+      await ottLike.findByIdAndDelete(existingLike._id);
+
+      await ottRoom.findByIdAndUpdate(roomId, { $inc: { totalLikes: -1 } });
+      return res.status(200).json({ message: '좋아요가 취소되었습니다.' });
+    } else {
+   
+      const newLike = new ottLike({ userId, roomId });
+      await newLike.save();
+  
+      await ottRoom.findByIdAndUpdate(roomId, { $inc: { totalLikes: 1 } });
+      return res.status(201).json({ message: '좋아요가 추가되었습니다.', newLike });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: '좋아요 처리 중 오류가 발생하였습니다.' });
+  }
+};
+
 export default {
   createRoom,
   enterRoom,
   getAllRooms,
   getRoomInfo,
   payingForOtt,
-  closeParty
+  closeParty,
+  ottLikeHandle,
 };

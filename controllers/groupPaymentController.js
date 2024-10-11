@@ -1,4 +1,4 @@
-import groupPayment from '../models/paymentModel.js';
+import groupPayment from '../models/grouppaymentModel.js';
 import User from '../models/userModel.js';
 import GroupShopping from '../models/groupshoppingModel.js';
 
@@ -40,7 +40,7 @@ const transferToLeader = async (productId) => {
 
     const leader = await User.findOne({ userId: product.leaderId });
 
-    const purchases = await groupPayment.find({ productId }); 
+    const purchases = await Payment.find({ productId }); 
     const totalPrice = purchases.reduce((sum, purchase) => sum + purchase.price, 0); 
 
     if (totalPrice <= 0) {
@@ -50,11 +50,19 @@ const transferToLeader = async (productId) => {
     leader.totalPoint += totalPrice;
     await leader.save();
 
+    const payment = await groupPayment.create({
+      userId: leader.userId,
+      userName: leaderName,
+      price: totalAmount,
+      type: 'trans_to_leader',
+      status: '구매완료',
+    });
+
+    return payment;
   } catch (error) {
     throw new Error(`포인트 전송 오류: ${error.message}`);
   }
 };
-
 
 
 const getProductTotalPoints = async (req, res) => {

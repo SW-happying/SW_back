@@ -27,7 +27,11 @@ const ottRoomSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  laederFee: {
+  price: {
+    type: Number,
+    required: true,
+  },
+  leaderFee: {
     type: Number,
     required: true,
   },

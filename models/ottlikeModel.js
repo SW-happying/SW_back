@@ -1,17 +1,18 @@
 import mongoose from 'mongoose';
 
-const grouplikeSchema = new mongoose.Schema({
+const ottlikeSchema = new mongoose.Schema({
   userId: {
     type: String,
     ref: 'User',
     required: true,
   },
-  productId: {
+  roomId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'GroupShopping', 
+    ref: 'ottRoom', 
     required: true,
   },
 }, { timestamps: true });
 
-const groupLike = mongoose.model('groupLike', grouplikeSchema);
-export default groupLike;
+const ottLike = mongoose.model('ottLike', ottlikeSchema);
+
+export default ottLike;

@@ -1,4 +1,5 @@
-import Liked from '../models/likedModel.js';
+import groupLike from '../models/grouplikeModel.js';
+import ottLike from '../models/ottlikeModel.js';
 import GroupShopping from '../models/groupshoppingModel.js'; 
 import ottRoom from '../models/ottModel.js';
 
@@ -6,13 +7,16 @@ const getLikedList = async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const likedGroups = await Liked.find({ userId }).populate('productId');
+    const likedGroups = await groupLike.find({ userId }).populate('productId');
+    const likedOTTs = await ottLike.find({ userId }).populate('roomId');
 
-    if (!likedGroups || likedGroups.length === 0) {
+    const combinedLikes = [...likedGroups, ...likedOTTs];
+
+    if (combinedLikes.length === 0) {
       return res.status(404).json({ message: '좋아요한 상품이 없습니다.' });
     }
 
-    res.status(200).json(likedGroups);
+    res.status(200).json(combinedLikes);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: '좋아요한 상품 목록을 불러오는 중 오류가 발생했습니다.' });
@@ -57,4 +61,7 @@ const getPopularList = async (req, res) => {
   }
 };
 
-export default {getLikedList, getPopularList};
+export default {
+  getLikedList,
+  getPopularList,
+};

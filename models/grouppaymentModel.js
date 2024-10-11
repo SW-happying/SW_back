@@ -57,9 +57,4 @@ const ottPaymentSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const groupPayment = mongoose.model('groupPayment', groupPaymentSchema);
-const ottPayment = mongoose.model('ottPayment', ottPaymentSchema);
-
-export default {
-  ottPayment,
-  groupPayment
-};
+export default groupPayment;
