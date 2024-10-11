@@ -13,5 +13,6 @@ router.get('/myparty/:userId',userController.getLeaderRooms);
 router.post('/myparty/:productId/status', groupshoppingController.updatePurchaseStatus); // 공동구매 상태변경 
 router.get('/points/:userId', pointController.getPoint); //내 포인트
 router.get('/pointlist/:userId', pointController.getPointList); //내 포인트 거래 내역
+router.post('/new',userController.registerUser); // 계정 생성
 
 export default router;
