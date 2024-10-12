@@ -73,7 +73,7 @@ const registPurchase = async (req, res) => {
     await product.save();
 
     const newPurchase = new PurchaseUser({
-      productId: productIdFromBody,
+      productId,
       userId: user._id,
       userName,
       address,
@@ -90,7 +90,7 @@ const registPurchase = async (req, res) => {
 
     // 포인트 전송을 시도하고 오류가 발생하면 구매를 취소합니다.
     try {
-      await groupPaymentController.transferToPlatform(userId, userName, totalPrice, productIdFromBody);
+      await groupPaymentController.transferToPlatform(userId, userName, totalPrice, productId);
     } catch (error) {
       // 포인트 전송 실패 시 구매를 취소하고 에러 메시지를 반환합니다.
       await PurchaseUser.deleteOne({ _id: newPurchase._id }); // 구매 기록 삭제
