@@ -5,8 +5,8 @@ import ottLike from '../models/grouplikeModel.js';
 import User from '../models/userModel.js';
 
 const createRoom = async (req, res) => {
-  const { userId } = req.params;
-  const { roomName, ottPlatform, plan, maxParticipants, duration, leaderFee, price } = req.body;
+
+  const { userId, roomName, ottPlatform, plan, maxParticipants, duration, leaderFee, price } = req.body;
 
   if (!roomName || !ottPlatform || !plan || !maxParticipants || !duration || !leaderFee || !price) {
       return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
@@ -83,9 +83,9 @@ const enterRoom = async (req, res) => {
 };
 
 const getRoomInfo = async (req, res) => {
-  const { id } = req.params; 
+  const { roomId } = req.params; 
   try {
-    const product = await ottRoom.findById(id);
+    const product = await ottRoom.findById(roomId);
     res.status(200).json(product);
   } catch (error) {
     console.error(error);
@@ -94,8 +94,7 @@ const getRoomInfo = async (req, res) => {
 };
 
 const payingForOtt = async (req, res) => {
-  const { userId } = req.params;
-  const { roomId:roomIdFromBody } = req.body;
+  const { userId, roomId } = req.params;
 
   try {
     const user = await User.findOne({ userId }); 
@@ -103,7 +102,7 @@ const payingForOtt = async (req, res) => {
       return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
     }
 
-    const product = await ottRoom.findById(roomIdFromBody);
+    const product = await ottRoom.findById(roomId);
     if (!product) {
       return res.status(404).json({ error: '상품을 찾을 수 없습니다.' });
     }

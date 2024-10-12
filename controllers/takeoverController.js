@@ -5,8 +5,7 @@ import User from '../models/userModel.js';
 // 이어받기 방 생성 함수
 const createTakeover = async (req, res) => {
 
-  const { userId } = req.params;
-  const { roomId, remainingDuration, paymentAmount } = req.body;
+  const { userId, roomId, remainingDuration, paymentAmount } = req.body;
 
   try {
     const room = await ottRoom.findById(roomId);
@@ -78,8 +77,7 @@ const gettakeoverRooms = async (req, res) => {
 };
 
 const payingforTakeover = async (req, res) => {
-  const { userId } = req.params;
-  const { id } = req.body;
+  const { userId, id } = req.params;
 
   try {
     const takeoverRoom = await TakeoverRoom.findById(id);

@@ -6,8 +6,7 @@ import groupLike from '../models/grouplikeModel.js';
 
 const addProduct = async (req, res) => {
   try {
-    const { userId }  = req.params;
-    const { productName, maxMember, price, options, image, description, deadline, leaderFee } = req.body;
+    const { userId, productName, maxMember, price, options, image, description, deadline, leaderFee } = req.body;
 
     const user = await User.findOne({userId});
     if (!user) {
@@ -45,9 +44,9 @@ const getProductList = async (req, res) => {
 };
 
 const getProductInfo = async (req, res) => {
-  const { id } = req.params; 
+  const { productId } = req.params; 
   try {
-    const product = await GroupShopping.findById(id);
+    const product = await GroupShopping.findById(productId);
     res.status(200).json(product);
   } catch (error) {
     console.error(error);
@@ -56,10 +55,8 @@ const getProductInfo = async (req, res) => {
 };
 
 const registPurchase = async (req, res) => {
-  const { userId } = req.params;
-
   try {
-    const { productId: productIdFromBody, userName, address, phone, selectOptions } = req.body;
+    const { productId: productIdFromBody, userId, userName, address, phone, selectOptions } = req.body;
 
     const user = await User.findOne({ userId });
     if (!user) {
