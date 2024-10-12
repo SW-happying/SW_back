@@ -60,7 +60,7 @@ const groupProductSchema = new mongoose.Schema({
     type: String, 
     enum: ["진행중","마감"],
     default: "진행중"
-  } 
+  }
 }, { timestamps: true });
 
 const GroupShopping = mongoose.model('GroupShopping', groupProductSchema);

@@ -2,7 +2,6 @@ import TakeoverRoom from '../models/takeoverModel.js';
 import ottRoom from '../models/ottModel.js';
 import User from '../models/userModel.js';
 
-// 이어받기 방 생성 함수
 const createTakeover = async (req, res) => {
 
   const { userId, roomId, remainingDuration, paymentAmount } = req.body;
@@ -27,7 +26,6 @@ const createTakeover = async (req, res) => {
 
     await takeoverRoomData.save();
 
-        // 성공적으로 이어받기 방 추가 후 응답
     res.status(201).json({ message: '이어받기 방이 추가되었습니다.', takeoverRoomData });
   } catch (error) {
     console.error(error);
@@ -61,7 +59,6 @@ const getTakeoverInfo = async (req, res) => {
 };
 
 
-// 이어받기 방 목록 조회 함수
 const gettakeoverRooms = async (req, res) => {
   try {
     const takeoverRooms = await TakeoverRoom.find().populate('roomId'); 
@@ -109,6 +106,10 @@ const payingforTakeover = async (req, res) => {
 
     await buyer.save();
     await leader.save();
+
+    const socket = req.app.get('socketio'); 
+    socket.to(roomId).emit('leaveRoom', { roomId, userId: leaderId });
+    socket.to(roomId).emit('joinRoom', { roomId, userId });
 
     res.status(200).json({
       message: `구매자 ${buyer.userId}의 포인트가 ${paymentAmount}만큼 차감되고, 리더 ${leader.userId}에게 포인트가 전송되었습니다.`
