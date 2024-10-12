@@ -18,26 +18,29 @@ const getPoint = async (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 };
-//이거
-const getPointList = async (req, res) => {
-  try {
-    const {userId} = req.params;
 
+const getPointList = async (req, res) => {
+  const { userId } = req.params;  
+  try {
     const groupOutgoingPoints = await groupPayment.find({
-      userId,
       type: 'trans_to_platform',
+    }).populate({
+      path: 'productId',
+      select: 'leaderId productName', 
     }).sort({ createdAt: -1 });
 
     const ottOutgoingPoints = await ottPayment.find({
-      userId,
       type: 'trans_to_platform',
+    }).populate({
+      path: 'roomId',
+      select: 'leaderId roomName', 
     }).sort({ createdAt: -1 });
 
     const groupIncomingPoints = await groupPayment.find({
       type: 'trans_to_leader',
     }).populate({
       path: 'productId',
-      select: 'leaderId',
+      select: 'leaderId productName', 
       match: { leaderId: userId },
     }).sort({ createdAt: -1 });
 
@@ -45,16 +48,18 @@ const getPointList = async (req, res) => {
       type: 'trans_to_leader',
     }).populate({
       path: 'roomId',
-      select: 'leaderId', 
-      match: { leaderId: userId }, 
+      select: 'leaderId roomName', 
+      match: { leaderId: userId },
     }).sort({ createdAt: -1 });
 
+    const filteredGroupOutgoingPoints = groupOutgoingPoints.filter(groupPayment => groupPayment.productId !== null);
+    const filteredOttOutgoingPoints = ottOutgoingPoints.filter(ottPayment => ottPayment.roomId !== null);
     const filteredGroupIncomingPoints = groupIncomingPoints.filter(groupPayment => groupPayment.productId !== null);
     const filteredOttIncomingPoints = ottIncomingPoints.filter(ottPayment => ottPayment.roomId !== null);
 
     const allPoints = [
-      ...groupOutgoingPoints,
-      ...ottOutgoingPoints,
+      ...filteredGroupOutgoingPoints,
+      ...filteredOttOutgoingPoints,
       ...filteredGroupIncomingPoints,
       ...filteredOttIncomingPoints,
     ];
@@ -67,7 +72,6 @@ const getPointList = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 export default {
   getPoint,
