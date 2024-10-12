@@ -10,11 +10,6 @@ const userSchema = new mongoose.Schema( {
     type: String,
     required: true
   },
-  nickName: {
-    type: String,
-    required: false,
-    unique: true
-  },
   totalPoint: {
     type: Number,
     required: true

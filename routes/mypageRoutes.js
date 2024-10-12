@@ -5,6 +5,7 @@ import groupshoppingController from '../controllers/groupshoppingController.js';
 
 const router = express.Router();
 
+router.post('/new', userController.registerUser); // 계정 등록 
 router.get('/:userId',userController.getUserInfo) // 내 정보 불러오기
 router.get('/mypurchase/:userId', groupshoppingController.getPurchaseList); // 구매내역 조회 (공동구매)
 router.get('/mypurchase/:purchaseId/confirm', groupshoppingController.confirmPurchase); //구매확정 누르기 (마지막 사람까지 완료하면 리더한테 포인트 전송됨)
