@@ -51,6 +51,10 @@ const ottRoomSchema = new mongoose.Schema({
   startDate: {
     type: Date,
     required: false
+  },
+  description: {
+    type: String,
+    required: false
   }
 });
 

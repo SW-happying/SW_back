@@ -24,6 +24,10 @@ const takeoverRoomSchema = new mongoose.Schema({
       enum: ["진행중","마감"],
       default: "진행중"
     },
+    description: {
+      type: String,
+      required: false
+    }
 });
 
 const TakeoverRoom = mongoose.model('TakeoverRoom', takeoverRoomSchema);
