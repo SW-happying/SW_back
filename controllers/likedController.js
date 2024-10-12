@@ -7,10 +7,22 @@ const getLikedList = async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const likedGroups = await groupLike.find({ userId }).populate('productId');
-    const likedOTTs = await ottLike.find({ userId }).populate('roomId');
+    const likedGroups = await groupLike.find({ userId }).populate({
+      path: 'productId',
+      match: { status: { $ne: '마감' } },
+      select: { productName: 1, price: 1, _id: 1, image: 1, deadline: 1 }
+    });
 
-    const combinedLikes = [...likedGroups, ...likedOTTs];
+    const likedOTTs = await ottLike.find({ userId }).populate({
+      path: 'roomId',
+      match: { status: { $ne: '마감' } },
+      select: { roomName: 1, ottPlatform: 1, plan: 1, price: 1, _id: 1, duration: 1 }
+    });
+
+    const filteredLikedGroups = likedGroups.filter(group => group.productId);
+    const filteredLikedOTTs = likedOTTs.filter(ott => ott.roomId);
+
+    const combinedLikes = [...filteredLikedGroups, ...filteredLikedOTTs];
 
     if (combinedLikes.length === 0) {
       return res.status(404).json({ message: '좋아요한 상품이 없습니다.' });
@@ -25,30 +37,28 @@ const getLikedList = async (req, res) => {
 
 const getPopularList = async (req, res) => {
   try {
-    const popularGroups = await GroupShopping.aggregate([
-      {
-        $project: {
-          _id: 1,
-          productName: 1,
-          totalLikes: 1,
-          category: { $literal: 'groupShopping' }, 
-        },
-      },
-    ]);
+    const popularGroups = await GroupShopping.find(
+      { status: { $ne: '마감' } }, 
+      { productName: 1, price: 1, _id: 1, image: 1, deadline: 1 } 
+    );
 
-    const popularOTTs = await ottRoom.aggregate([
-      {
-        $project: {
-          _id: 1,
-          roomName: 1,
-          totalLikes: 1,
-          category: { $literal: 'ott' }, // 카테고리 구분
-        },
-      },
-    ]);
+    const popularOTTs = await ottRoom.find(
+      { status: { $ne: '마감' } }, 
+      { roomName: 1, ottPlatform: 1, plan: 1, price: 1, _id: 1, duration: 1 }
+    );
 
-    const combinedList = [...popularGroups, ...popularOTTs];
-    const sortedList = combinedList.sort((a, b) => b.totalLikes - a.totalLikes).slice(0, 10);
+    const popularGroupsWithCategory = popularGroups.map(group => ({
+      ...group.toObject(),
+      category: 'groupShopping', 
+    }));
+
+    const popularOTTsWithCategory = popularOTTs.map(ott => ({
+      ...ott.toObject(),
+      category: 'ott',
+    }));
+
+    const combinedList = [...popularGroupsWithCategory, ...popularOTTsWithCategory];
+    const sortedList = combinedList.slice(0, 10); 
 
     if (sortedList.length === 0) {
       return res.status(404).json({ message: '인기 있는 상품이 없습니다.' });
@@ -60,6 +70,7 @@ const getPopularList = async (req, res) => {
     res.status(500).json({ error: '인기 상품 목록을 불러오는 중 오류가 발생했습니다.' });
   }
 };
+
 
 export default {
   getLikedList,

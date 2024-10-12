@@ -2,7 +2,6 @@ import User from '../models/userModel.js';
 import groupPayment from '../models/grouppaymentModel.js';
 import ottPayment from '../models/ottpaymentModel.js';
 
-// 포인트 조회 함수 (사용자의 총 포인트 반환)
 const getPoint = async (req, res) => {
   const { userId } = req.params;
 
@@ -22,7 +21,7 @@ const getPoint = async (req, res) => {
 
 const getPointList = async (req, res) => {
   try {
-    const userId = req.userId; 
+    const {userId} = req.params;
 
     const groupOutgoingPoints = await groupPayment.find({
       userId,
@@ -64,6 +63,7 @@ const getPointList = async (req, res) => {
 
     res.status(200).json(sortedAllPoints);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
