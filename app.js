@@ -5,7 +5,7 @@ import connectDB from './config/dbConfig.js';
 
 
 const app = express();
-const PORT = 5000; 
+const PORT = 3000; 
 
 connectDB(); 
 
@@ -18,6 +18,6 @@ app.get('/', (req, res) => {
   res.send('Hello Happying..!');
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`); 
 });

@@ -166,7 +166,7 @@ const getBuyerList = async (req, res) => {
   const { productId } = req.params;  
 
   try {
-    const purchases = await PurchaseUser.findOne( {productId} );
+    const purchases = await PurchaseUser.find( {productId} );
     if (!purchases || purchases.length === 0) {
       return res.status(404).json({ error: '이 상품에 대한 구매자가 없습ㄴ다.' });
     }
