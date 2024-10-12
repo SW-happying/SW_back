@@ -77,7 +77,9 @@ const gettakeoverRooms = async (req, res) => {
 };
 
 const payingforTakeover = async (req, res) => {
-  const { userId, id } = req.params;
+  const { id } = req.params;
+  const { userId } = req.body;
+
 
   try {
     const takeoverRoom = await TakeoverRoom.findById(id);
