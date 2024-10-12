@@ -3,6 +3,7 @@ import ottRoom from '../models/ottModel.js';
 import ottPaymentController from './ottPaymentController.js';
 import ottLike from '../models/grouplikeModel.js';
 import User from '../models/userModel.js';
+import Message from '../models/chatModel.js';
 
 const createRoom = async (req, res) => {
 
@@ -47,7 +48,7 @@ const createRoom = async (req, res) => {
 //dks
 const getAllRooms = async (req, res) => {
   try {
-      const rooms = await ottRoom.find({ status: { $ne: '마감' } }, { roomName: 1, ottPlatform:1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1 });
+      const rooms = await ottRoom.find({ status: { $ne: '마감' } }, { roomName: 1, ottPlatform:1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1, maxParticipants: 1 });
 
       if (!rooms || rooms.length === 0) {
           return res.status(404).json({ error: '현재 등록된 방이 없습니다.' });
