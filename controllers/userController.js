@@ -36,16 +36,11 @@ const getUserInfo = async (req, res) => {
 };
 
 const getLeaderRooms = async (req, res) => {
-  const { userId } = req.params; // URL의 userId 파라미터 가져오기
+  const { userId } = req.params;
 
   try {
-    // 공동구매 목록에서 leaderId가 userId인 항목 찾기
     const myGroupShoppingRooms = await GroupShopping.find({ leaderId: userId });
-
-    // OTT 방 목록에서 leaderId가 userId인 항목 찾기
     const myOttRooms = await ottRoom.find({ leaderId: userId });
-
-    // 두 목록을 결합
     const combinedRooms = {
       groupShopping: myGroupShoppingRooms,
       ottRooms: myOttRooms,

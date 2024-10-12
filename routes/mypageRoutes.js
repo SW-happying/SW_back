@@ -12,7 +12,7 @@ router.get('/mypurchase/:purchaseId/confirm', groupshoppingController.confirmPur
 
 router.get('/myparty/:productId', groupshoppingController.getBuyerList); //공동구매 구매자 리스트
 router.post('/myparty/:productId/status', groupshoppingController.updatePurchaseStatus); // 공동구매 상태변경 
-router.get('/myparty/:userId',userController.getLeaderRooms); //내 파티 불러오기 
+router.get('/mypartylist/:userId',userController.getLeaderRooms); //내 파티 불러오기 
 
 router.get('/mypoint/:userId', pointController.getPoint); //내 포인트
 router.get('/mypoint/list/:userId', pointController.getPointList); //내 포인트 거래 내역
