@@ -9,14 +9,16 @@ const getLikedList = async (req, res) => {
   try {
     const likedGroups = await groupLike.find({ userId }).populate({
       path: 'productId',
+      model: 'Groupshoppng',
       match: { status: { $ne: '마감' } },
       select: { productName: 1, price: 1, _id: 1, image: 1, deadline: 1 }
     });
 
     const likedOTTs = await ottLike.find({ userId }).populate({
       path: 'roomId',
+      model: 'ottRoom', 
       match: { status: { $ne: '마감' } },
-      select: { roomName: 1, ottPlatform: 1, plan: 1, price: 1, _id: 1, duration: 1 }
+      select: { roomName: 1, ottPlatform: 1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1 }
     });
 
     const filteredLikedGroups = likedGroups.filter(group => group.productId);
@@ -35,6 +37,7 @@ const getLikedList = async (req, res) => {
   }
 };
 
+
 const getPopularList = async (req, res) => {
   try {
     const popularGroups = await GroupShopping.find(
@@ -44,7 +47,7 @@ const getPopularList = async (req, res) => {
 
     const popularOTTs = await ottRoom.find(
       { status: { $ne: '마감' } }, 
-      { roomName: 1, ottPlatform: 1, plan: 1, price: 1, _id: 1, duration: 1 }
+      { roomName: 1, ottPlatform: 1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1 }
     );
 
     const popularGroupsWithCategory = popularGroups.map(group => ({
