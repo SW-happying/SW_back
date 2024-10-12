@@ -42,7 +42,7 @@ const getPopularList = async (req, res) => {
   try {
     const popularGroups = await GroupShopping.find(
       { status: { $ne: '마감' } }, 
-      { productName: 1, price: 1, _id: 1, image: 1, deadline: 1 } 
+      { productName: 1, price: 1, _id: 1, image: 1, deadline: 1, leaderFee: 1 } 
     );
 
     const popularOTTs = await ottRoom.find(
