@@ -28,9 +28,17 @@ const createRoom = async (req, res) => {
           price,
           leaderFee,
       });
-
+      
       const savedRoom = await newRoom.save();
-      res.status(201).json(savedRoom); 
+      const chatRoomId = savedRoom._id;
+
+      const initialMessage = new Message({
+        text: '채팅방이 생성되었습니다.',
+        sender: user._id,
+        roomId: chatRoomId
+    });
+    await initialMessage.save();
+    res.status(201).json(savedRoom); 
   } catch (err) {
       console.error(err); 
       res.status(500).json({ error: '방 생성 중 오류가 발생했습니다.' });
@@ -39,7 +47,7 @@ const createRoom = async (req, res) => {
 
 const getAllRooms = async (req, res) => {
   try {
-      const rooms = await ottRoom.find({ status: { $ne: '마감' } }, { roomName: 1, ottPlatform:1, plan: 1, price: 1, _id: 1, duration: 1 });
+      const rooms = await ottRoom.find({ status: { $ne: '마감' } }, { roomName: 1, ottPlatform:1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1 });
 
       if (!rooms || rooms.length === 0) {
           return res.status(404).json({ error: '현재 등록된 방이 없습니다.' });
@@ -52,7 +60,6 @@ const getAllRooms = async (req, res) => {
   }
 };
 
-//채팅방과 연결...
 const enterRoom = async (req, res) => {
     const { roomId } = req.params;
     const { userId } = req.body;
@@ -61,7 +68,6 @@ const enterRoom = async (req, res) => {
         if (!room) {
             return res.status(404).json({ error: '해당 방을 찾을 수 없습니다.' });
         }
-
         const currentParticipants = await EnterRoom.countDocuments({ roomId });
 
         if (room.maxParticipants <= currentParticipants) {
