@@ -44,7 +44,7 @@ const createRoom = async (req, res) => {
       res.status(500).json({ error: '방 생성 중 오류가 발생했습니다.' });
   }
 };
-
+//dks
 const getAllRooms = async (req, res) => {
   try {
       const rooms = await ottRoom.find({ status: { $ne: '마감' } }, { roomName: 1, ottPlatform:1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1 });
