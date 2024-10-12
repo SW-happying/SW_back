@@ -112,7 +112,7 @@ const payingForOtt = async (req, res) => {
 
     const totalPrice = product.price + product.leaderFee;
 
-    await ottPaymentController.transferToPlatform(userId, totalPrice, roomIdFromBody);
+    await ottPaymentController.transferToPlatform(userId, totalPrice, roomId);
 
     res.status(201).json({ message: '구매가 완료되었습니다.'});
   } catch (error) {
