@@ -18,22 +18,24 @@ const getPoint = async (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 };
-//hmm
+
 const getPointList = async (req, res) => {
   const { userId } = req.params;  
   try {
     const groupOutgoingPoints = await groupPayment.find({
       type: 'trans_to_platform',
+      userId : userId
     }).populate({
-      path: 'productId',
       select: 'leaderId productName', 
+      path: 'productId',
     }).sort({ createdAt: -1 });
 
     const ottOutgoingPoints = await ottPayment.find({
       type: 'trans_to_platform',
+      userId : userId
     }).populate({
+      select: 'leaderId roomName',
       path: 'roomId',
-      select: 'leaderId roomName', 
     }).sort({ createdAt: -1 });
 
     const groupIncomingPoints = await groupPayment.find({
