@@ -18,7 +18,7 @@ const getPoint = async (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 };
-
+//hmm
 const getPointList = async (req, res) => {
   const { userId } = req.params;  
   try {
