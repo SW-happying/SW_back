@@ -46,6 +46,7 @@ const createRoom = async (req, res) => {
   }
 };
 //dks
+
 const getAllRooms = async (req, res) => {
   try {
       const rooms = await ottRoom.find({ status: { $ne: '마감' } }, { roomName: 1, ottPlatform:1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1, maxParticipants: 1 });
@@ -62,32 +63,44 @@ const getAllRooms = async (req, res) => {
 };
 
 const enterRoom = async (req, res) => {
-    const { roomId } = req.params;
-    const { userId } = req.body;
-    try {
-        const room = await ottRoom.findById(roomId);
-        if (!room) {
-            return res.status(404).json({ error: '해당 방을 찾을 수 없습니다.' });
-        }
-        const currentParticipants = await EnterRoom.countDocuments({ roomId });
+  const { roomId } = req.params;  // URL 파라미터로부터 roomId 가져오기
+  const { userId } = req.body;     // 요청 본문으로부터 userId 가져오기
+  try {
+      // roomId를 기준으로 ottRoom 컬렉션에서 해당 방 정보를 가져옵니다.
+      const roomEntry = await ottRoom.findById(roomId); 
 
-        if (room.maxParticipants <= currentParticipants) {
-            return res.status(400).json({ error: '해당 방은 이미 인원이 가득 찼습니다.' });
-        }
+      // 방 정보를 찾지 못한 경우
+      if (!roomEntry) {
+          return res.status(404).json({ error: '해당 방을 찾을 수 없습니다.' });
+      }
 
-        const enterRoomData = new EnterRoom({
-            roomId,
-            userId
-        });
+      const currentParticipants = await EnterRoom.countDocuments({ roomId });
 
-        await enterRoomData.save();
+      // 최대 참가자 수 초과 확인
+      if (roomEntry.maxParticipants <= currentParticipants) {
+          return res.status(400).json({ error: '해당 방은 이미 인원이 가득 찼습니다.' });
+      }
 
-        res.status(200).json({ message: '방에 입장하였습니다.', chatRoomURL: `/chat/${roomId}` });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: '방 입장 중 오류가 발생했습니다.' });
-    }
+      // 방 입장 정보 저장
+      const enterRoomData = new EnterRoom({
+          roomId: roomEntry._id,  // ottRoom의 _id를 저장
+          userId
+      });
+
+      await enterRoomData.save();
+
+      res.status(200).json({ 
+          message: '방에 입장하였습니다.', 
+          chatRoomURL: `/chat/${roomId}`, 
+          roomDetails: roomEntry // 방 정보를 응답에 포함
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: '방 입장 중 오류가 발생했습니다.' });
+  }
 };
+
+
 
 const getRoomInfo = async (req, res) => {
   const { roomId } = req.params; 
