@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const enterRoomSchema = new mongoose.Schema({
     roomId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Room',
+        ref: 'ottRoom',
         required: true,
     },
     userId: {
