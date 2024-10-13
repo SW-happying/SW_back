@@ -5,12 +5,12 @@ import takeoverController from "../controllers/takeoverController.js";
 const router = express.Router();
 
 //파티원 모집 섹션
-router.get('/party', ottController.getAllRooms); //ott 파티 목록 조회
+router.get('/partylist/:userId', ottController.getAllRooms); //ott 파티 목록 조회
 router.post('/party', ottController.createRoom); //ott 파티원 모집방 추가등록
 router.get('/party/:roomId', ottController.getRoomInfo); //파티원 모집방 상세정보 (파티방 _id로)
 router.get('/party/:roomId/close', ottController.closeParty); // 모집 마감
 router.post('/party/:roomId/addlike', ottController.ottLikeHandle); // ott방 좋아요
-router.get('party/:roomId/chat', ottController.enterRoom); //채팅방 입장...해야함
+router.post('/party/:roomId/chat', ottController.enterRoom); //채팅방 입장...해야함
 router.post('/party/:roomId/chat/:userId',ottController.payingForOtt); //ott 서비스 결제하기
 
 //이어받기 섹션

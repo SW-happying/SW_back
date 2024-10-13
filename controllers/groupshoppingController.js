@@ -35,9 +35,30 @@ const addProduct = async (req, res) => {
 
 
 const getProductList = async (req, res) => {
+  const {userId} = req.params; 
+
   try {
-    const products = await GroupShopping.find({ status: { $ne: '마감' } }, { productName: 1, price: 1, _id: 1, image: 1, deadline: 1 });
-    res.status(200).json(products);
+    const products = await GroupShopping.find({ status: { $ne: '마감' } }, { 
+      productName: 1, 
+      price: 1, 
+      _id: 1, 
+      image: 1, 
+      deadline: 1, 
+      leaderFee: 1 
+    });
+
+    const productsWithLikes = await Promise.all(products.map(async (product) => {
+      const likeCount = await groupLike.countDocuments({ productId: product._id });
+      const userLiked = await groupLike.exists({ productId: product._id, userId });
+
+      return {
+        ...product.toObject(),
+        likeCount,
+        userLiked: userLiked ? 1 : 0, 
+      };
+    }));
+
+    res.status(200).json(productsWithLikes);
   } catch (error) {
     res.status(500).json({ error: '공동구매 상품목록을 불러오지 못했습니다.' });
   }
@@ -207,20 +228,20 @@ const groupLikeHandle = async (req, res) => {
   const { userId } = req.body;
 
   try {
-    const existingLike = await groupLike.findOne({ userId, productId });
+    const groupExistingLike = await groupLike.findOne({ userId, productId });
 
-    if (existingLike) {
-      await groupLike.findByIdAndDelete(existingLike._id);
+    if (groupExistingLike) {
+      await groupLike.findByIdAndDelete(groupExistingLike._id);
 
       await GroupShopping.findByIdAndUpdate(productId, { $inc: { totalLikes: -1 } });
       return res.status(200).json({ message: '좋아요가 취소되었습니다.' });
     } else {
    
-      const newLike = new groupLike({ userId, productId });
-      await newLike.save();
+      const newGroupLike = new groupLike({ userId, productId });
+      await newGroupLike.save();
   
       await GroupShopping.findByIdAndUpdate(productId, { $inc: { totalLikes: 1 } });
-      return res.status(201).json({ message: '좋아요가 추가되었습니다.', newLike });
+      return res.status(201).json({ message: '좋아요가 추가되었습니다.', newGroupLike });
     }
   } catch (error) {
     console.error(error);

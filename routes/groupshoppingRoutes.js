@@ -3,7 +3,7 @@ import groupshoppingController from '../controllers/groupshoppingController.js';
 
 const router = express.Router();
 
-router.get('/products', groupshoppingController.getProductList); // 공동구매 상품 목록
+router.get('/productlist/:userId', groupshoppingController.getProductList); // 공동구매 상품 목록
 router.post('/products', groupshoppingController.addProduct); // 공동 구매 상품 등록 
 
 //productId = groupshopping모델의 _id

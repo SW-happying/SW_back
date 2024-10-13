@@ -48,42 +48,60 @@ const createRoom = async (req, res) => {
 //dks
 
 const getAllRooms = async (req, res) => {
+  const {userId} = req.params;
+
   try {
-      const rooms = await ottRoom.find({ status: { $ne: '마감' } }, { roomName: 1, ottPlatform:1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1, maxParticipants: 1 });
+    const rooms = await ottRoom.find({ status: { $ne: '마감' } }, { 
+      roomName: 1, 
+      ottPlatform: 1, 
+      plan: 1, 
+      price: 1, 
+      _id: 1, 
+      duration: 1, 
+      leaderFee: 1, 
+      maxParticipants: 1 
+    });
 
-      if (!rooms || rooms.length === 0) {
-          return res.status(404).json({ error: '현재 등록된 방이 없습니다.' });
-      }
+    if (!rooms || rooms.length === 0) {
+      return res.status(404).json({ error: '현재 등록된 방이 없습니다.' });
+    }
 
-      res.status(200).json(rooms);
+    const roomsWithLikes = await Promise.all(rooms.map(async (room) => {
+      const likeCount = await ottLike.countDocuments({ roomId: room._id }); 
+      const userLiked = await ottLike.exists({ roomId: room._id, userId }); 
+
+      return {
+        ...room.toObject(),
+        likeCount,
+        userLiked: userLiked ? 1 : 0, 
+      };
+    }));
+
+    res.status(200).json(roomsWithLikes);
   } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: '방 목록을 불러오는 중 오류가 발생했습니다.' });
+    console.error(error);
+    res.status(500).json({ error: '방 목록을 불러오는 중 오류가 발생했습니다.' });
   }
 };
 
 const enterRoom = async (req, res) => {
-  const { roomId } = req.params;  // URL 파라미터로부터 roomId 가져오기
-  const { userId } = req.body;     // 요청 본문으로부터 userId 가져오기
+  const { roomId } = req.params;  
+  const { userId } = req.body;    
   try {
-      // roomId를 기준으로 ottRoom 컬렉션에서 해당 방 정보를 가져옵니다.
       const roomEntry = await ottRoom.findById(roomId); 
 
-      // 방 정보를 찾지 못한 경우
       if (!roomEntry) {
           return res.status(404).json({ error: '해당 방을 찾을 수 없습니다.' });
       }
 
       const currentParticipants = await EnterRoom.countDocuments({ roomId });
 
-      // 최대 참가자 수 초과 확인
       if (roomEntry.maxParticipants <= currentParticipants) {
           return res.status(400).json({ error: '해당 방은 이미 인원이 가득 찼습니다.' });
       }
 
-      // 방 입장 정보 저장
       const enterRoomData = new EnterRoom({
-          roomId: roomEntry._id,  // ottRoom의 _id를 저장
+          roomId: roomEntry._id, 
           userId
       });
 
@@ -92,7 +110,7 @@ const enterRoom = async (req, res) => {
       res.status(200).json({ 
           message: '방에 입장하였습니다.', 
           chatRoomURL: `/chat/${roomId}`, 
-          roomDetails: roomEntry // 방 정보를 응답에 포함
+          roomDetails: roomEntry 
       });
   } catch (error) {
       console.error(error);
@@ -109,7 +127,7 @@ const getRoomInfo = async (req, res) => {
     res.status(200).json(product);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: '공동구매 상품 상세정보를 불러오지 못했습니다.' });
+    res.status(500).json({ error: 'ott 파티원 모집방 상세정보를 불러오지 못했습니다.' });
   }
 };
 
@@ -148,7 +166,7 @@ const closeParty = async (req, res) => {
     const product = await ottRoom.findById(roomId);
 
     if (!product) {
-      return res.status(404).json({ error: '해당 상품을 찾을 수 없습니다.' });
+      return res.status(404).json({ error: '해당 방을 찾을 수 없습니다.' });
     }
 
     product.status = '마감';
