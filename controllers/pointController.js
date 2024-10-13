@@ -60,10 +60,22 @@ const getPointList = async (req, res) => {
     const filteredOttIncomingPoints = ottIncomingPoints.filter(ottPayment => ottPayment.roomId !== null);
 
     const allPoints = [
-      ...filteredGroupOutgoingPoints,
-      ...filteredOttOutgoingPoints,
-      ...filteredGroupIncomingPoints,
-      ...filteredOttIncomingPoints,
+      ...filteredGroupOutgoingPoints.map(point => ({
+        ...point._doc, 
+        name: point.productId.productName
+      })),
+      ...filteredOttOutgoingPoints.map(point => ({
+        ...point._doc, 
+        name: point.roomId.roomName 
+      })),
+      ...filteredGroupIncomingPoints.map(point => ({
+        ...point._doc, 
+        name: point.productId.productName 
+      })),
+      ...filteredOttIncomingPoints.map(point => ({
+        ...point._doc, 
+        name: point.roomId.roomName 
+      })),
     ];
 
     const sortedAllPoints = allPoints.sort((a, b) => b.createdAt - a.createdAt);
