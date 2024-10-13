@@ -1,7 +1,7 @@
 import EnterRoom from '../models/ottenterModel.js';
 import ottRoom from '../models/ottModel.js';
 import ottPaymentController from './ottPaymentController.js';
-import ottLike from '../models/grouplikeModel.js';
+import ottLike from '../models/ottlikeModel.js';
 import User from '../models/userModel.js';
 import Message from '../models/chatModel.js';
 
@@ -153,20 +153,20 @@ const ottLikeHandle = async (req, res) => {
   const { userId } = req.body;
 
   try {
-    const existingLike = await ottLike.findOne({ userId, roomId });
+    const ottExistingLike = await ottLike.findOne({ userId, roomId });
 
-    if (existingLike) {
-      await ottLike.findByIdAndDelete(existingLike._id);
+    if (ottExistingLike) {
+      await ottLike.findByIdAndDelete(ottExistingLike._id);
 
       await ottRoom.findByIdAndUpdate(roomId, { $inc: { totalLikes: -1 } });
       return res.status(200).json({ message: '좋아요가 취소되었습니다.' });
     } else {
    
-      const newLike = new ottLike({ userId, roomId });
-      await newLike.save();
+      const newOttLike = new ottLike({ userId, roomId });
+      await newOttLike.save();
   
       await ottRoom.findByIdAndUpdate(roomId, { $inc: { totalLikes: 1 } });
-      return res.status(201).json({ message: '좋아요가 추가되었습니다.', newLike });
+      return res.status(201).json({ message: '좋아요가 추가되었습니다.', newOttLike });
     }
   } catch (error) {
     console.error(error);
