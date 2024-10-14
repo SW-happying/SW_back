@@ -29,7 +29,7 @@ const groupProductSchema = new mongoose.Schema({
     required: false, 
   },
   image: {
-    type: String,
+    type: [String],
     required: true,
   },
   description: {
@@ -41,10 +41,6 @@ const groupProductSchema = new mongoose.Schema({
     required: true,
   },
   leaderFee: {
-    type: Number,
-    required: true,
-  },
-  maxMember: {
     type: Number,
     required: true,
   },

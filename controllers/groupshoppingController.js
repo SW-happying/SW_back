@@ -6,7 +6,7 @@ import groupLike from '../models/grouplikeModel.js';
 
 const addProduct = async (req, res) => {
   try {
-    const { userId, productName, maxMember, price, options, image, description, deadline, leaderFee } = req.body;
+    const { userId, productName, price, options, image, description, deadline, leaderFee } = req.body;
 
     const user = await User.findOne({userId});
     if (!user) {
@@ -21,7 +21,6 @@ const addProduct = async (req, res) => {
       image,
       description,
       deadline,
-      maxMember,
       leaderFee
     });
 
@@ -29,7 +28,7 @@ const addProduct = async (req, res) => {
     res.status(201).json({ message: '상품이 추가되었습니다.', product: newProduct });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: '상품 추가 중 오류가 발생하였습니다.' });
+    res.status(500).json({ error: '상품 추가 중 오류가 발생하였습니다.', details: error.message});
   }
 };
 
