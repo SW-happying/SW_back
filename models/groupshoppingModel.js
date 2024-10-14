@@ -44,10 +44,6 @@ const groupProductSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  maxMember: {
-    type: Number,
-    required: true,
-  },
   totalPurchasers: { 
     type: Number,
     default: 0, 

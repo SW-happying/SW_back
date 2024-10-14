@@ -6,7 +6,7 @@ import groupLike from '../models/grouplikeModel.js';
 
 const addProduct = async (req, res) => {
   try {
-    const { userId, productName, maxMember, price, options, image, description, deadline, leaderFee } = req.body;
+    const { userId, productName, price, options, image, description, deadline, leaderFee } = req.body;
 
     const user = await User.findOne({userId});
     if (!user) {
@@ -21,7 +21,6 @@ const addProduct = async (req, res) => {
       image,
       description,
       deadline,
-      maxMember,
       leaderFee
     });
 
