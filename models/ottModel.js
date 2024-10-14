@@ -11,7 +11,7 @@ const ottRoomSchema = new mongoose.Schema({
   },
   ottPlatform: {
     type: String,
-    enum: ['넷플릭스', '왓챠', '티빙', '웨이브', '라프텔', '디즈니 플러스', '네이버 멤버십'], 
+    enum: ['넷플릭스', '왓챠', '티빙', '웨이브', '라프텔', '디즈니플러스', '네이버멤버십'], 
     required: true,
   },
   plan: {

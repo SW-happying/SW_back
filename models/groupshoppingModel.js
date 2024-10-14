@@ -16,14 +16,22 @@ const groupProductSchema = new mongoose.Schema({
   options: {
     type: [
       {
-        name: {
-          type: String, 
-          required: true,
+        categoryName: {
+          type: String,
+          required: false, 
         },
-        values: {
-          type: [String], 
-          required: true,
-        },
+        options: [
+          {
+            name: {
+              type: String,
+              required: false, 
+            },
+            values: {
+              type: String,
+              required: false, 
+            },
+          },
+        ],
       },
     ],
     required: false, 
