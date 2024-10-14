@@ -4,7 +4,7 @@ import User from '../models/userModel.js';
 
 const createTakeover = async (req, res) => {
 
-  const { userId, roomId, remainingDuration, paymentAmount } = req.body;
+  const { userId, roomId, roomName, price, description } = req.body;
 
   try {
     const room = await ottRoom.findById(roomId);
@@ -20,8 +20,15 @@ const createTakeover = async (req, res) => {
     const takeoverRoomData = new TakeoverRoom({
       leaderId: userId,
       roomId,
-      remainingDuration,
-      paymentAmount,
+      roomName,
+      price,
+      description,
+      ottPlatform: room.ottPlatform,  
+      plan: room.plan,              
+      maxParticipants: room.maxParticipants, 
+      duration: room.duration,        
+      startDate: room.startDate,                   
+      leaderFee: room.leaderFee, 
     });
 
     await takeoverRoomData.save();
