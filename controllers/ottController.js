@@ -6,13 +6,11 @@ import User from '../models/userModel.js';
 import Message from '../models/chatModel.js';
 
 const createRoom = async (req, res) => {
-
   const { userId, roomName, ottPlatform, plan, maxParticipants, duration, leaderFee, price } = req.body;
 
   if (!roomName || !ottPlatform || !plan || !maxParticipants || !duration || !leaderFee || !price) {
       return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
   }
-
   const user = await User.findOne({userId});
     if (!user) {
       return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
@@ -45,7 +43,6 @@ const createRoom = async (req, res) => {
       res.status(500).json({ error: '방 생성 중 오류가 발생했습니다.' });
   }
 };
-//dks
 
 const getAllRooms = async (req, res) => {
   const {userId} = req.params;
@@ -85,39 +82,39 @@ const getAllRooms = async (req, res) => {
 };
 
 const enterRoom = async (req, res) => {
-  const { roomId } = req.params;  
-  const { userId } = req.body;    
+  const { roomId } = req.params;
+  const { userId } = req.body;
   try {
-      const roomEntry = await ottRoom.findById(roomId); 
-
-      if (!roomEntry) {
+      const room = await ottRoom.findById(roomId);
+      if (!room) {
           return res.status(404).json({ error: '해당 방을 찾을 수 없습니다.' });
       }
-
       const currentParticipants = await EnterRoom.countDocuments({ roomId });
 
-      if (roomEntry.maxParticipants <= currentParticipants) {
+      if (room.maxParticipants <= currentParticipants) {
           return res.status(400).json({ error: '해당 방은 이미 인원이 가득 찼습니다.' });
       }
 
       const enterRoomData = new EnterRoom({
-          roomId: roomEntry._id, 
-          userId
+          roomId,
+          userId,
+          ottPlatform: room.ottPlatform,  
+          plan: room.plan,              
+          maxParticipants: room.maxParticipants, 
+          duration: room.duration,        
+          startDate: room.startDate,      
+          price: room.price,              
+          leaderFee: room.leaderFee,  
       });
 
       await enterRoomData.save();
 
-      res.status(200).json({ 
-          message: '방에 입장하였습니다.', 
-          chatRoomURL: `/chat/${roomId}`, 
-          roomDetails: roomEntry 
-      });
+      res.status(200).json({ message: '방에 입장하였습니다.', chatRoomURL: `/chat/${roomId}` });
   } catch (error) {
       console.error(error);
       res.status(500).json({ error: '방 입장 중 오류가 발생했습니다.' });
   }
-};
-
+}; 
 
 
 const getRoomInfo = async (req, res) => {
