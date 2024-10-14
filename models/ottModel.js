@@ -16,7 +16,7 @@ const ottRoomSchema = new mongoose.Schema({
   },
   plan: {
     type: String,
-    enum: ['standard', 'basic', 'premium'],
+    enum: ['standard', 'basic', 'premium', 'monthly', 'annual'],
     required: true,
   },
   maxParticipants: {
