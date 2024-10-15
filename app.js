@@ -1,52 +1,78 @@
 import express from 'express';
 import cors from 'cors';
-import http from 'http'; // http 모듈 추가
-import { Server } from 'socket.io'; // socket.io 모듈 추가
 import router from './routes/index.js';
 import connectDB from './config/dbConfig.js';
+import { createServer } from 'http';  
+import { Server as SocketIO } from 'socket.io';  
+import fs from 'fs';  
 
 const app = express();
-const PORT = 5001;
-const server = http.createServer(app);
-const io = new Server(server);
+const PORT = 5000;
 
+// 데이터베이스 연결
 connectDB();
 
-io.on('connection', (socket) => {
-  console.log('새로운 사용자가 연결되었습니다.');
-
-  // 방 입장 처리
-  socket.on('joinRoom', (roomId) => {
-    socket.join(roomId);
-    console.log(`사용자가 방 ${roomId}에 입장했습니다.`);
-  });
-
-  // 방을 나갈 때 처리
-  socket.on('leaveRoom', ({ roomId }) => {
-    socket.leave(roomId);
-    console.log(`사용자가 방 ${roomId}에서 나갔습니다.`);
-  });
-
-  // 메시지 전송 처리
-  socket.on('chat message', (message) => {
-    io.to(message.roomId).emit('chat message', message.text);
-    console.log(`메시지가 방 ${message.roomId}에 전송되었습니다: ${message.text}`);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('사용자가 연결을 해제했습니다.');
-  });
-});
-
+// 미들웨어 설정
 app.use(cors());
 app.use(express.json());
+app.use('/css', express.static('./static/css'));
+app.use('/js', express.static('./static/js'));
 
+// API 라우트 연결
 app.use('/api', router);
 
-app.get('/', (req, res) => {
-  res.send('Hello Happying..!');
+// 채팅방 페이지 제공 (동적 라우트 적용)
+app.get('/chat/:roomId', (req, res) => {
+  const { roomId } = req.params;
+  fs.readFile('./static/index.html', 'utf8', (error, data) => {
+    if (error) {
+      console.error(error);
+      return res.sendStatus(500);
+    }
+    // HTML 파일에 roomId를 포함하여 전달
+    const modifiedData = data.replace('##ROOM_ID##', roomId);
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(modifiedData);
+  });
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on port ${PORT}`);
+// 소켓 설정
+const server = createServer(app);
+const io = new SocketIO(server, {
+  cors: {
+    origin: "*", // 클라이언트에서의 CORS 문제 해결
+  },
+});
+
+io.on('connection', (socket) => {
+  let roomId;
+
+  // 새로운 유저가 입장할 때
+  socket.on('joinRoom', ({ name, roomId: room }) => {
+    roomId = room;
+    socket.join(roomId);
+    socket.name = name;
+    console.log(`${name}님이 ${roomId} 방에 입장했습니다.`);
+
+    io.to(roomId).emit('update', { type: 'connect', name: 'server', message: `${name}님이 입장했습니다.` });
+  });
+
+  // 유저가 메시지를 전송할 때
+  socket.on('message', (data) => {
+    data.name = socket.name;
+    io.to(roomId).emit('update', data);
+    console.log(`${data.name}의 메시지: ${data.message}`);
+  });
+
+  // 유저가 나갈 때
+  socket.on('disconnect', () => {
+    if (socket.name) {
+      io.to(roomId).emit('update', { type: 'disconnect', name: 'SERVER', message: `${socket.name}님이 나갔습니다.` });
+    }
+  });
+});
+
+// 서버 시작
+server.listen(PORT, () => {
+  console.log(`서버가 ${PORT} 포트에서 실행 중입니다.`);
 });

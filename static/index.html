@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅</title>
+    <link rel="stylesheet" href="/css/index.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const roomId = '##ROOM_ID##'; // 서버에서 주입한 roomId 사용
+    </script>
+    <script src="/js/chat.js"></script>
+  </head>
+  <body>
+    <div id="main">
+      <div id="chat"></div>
+      <div>
+        <input type="text" id="messageInput" placeholder="메시지를 입력하세요">
+        <button onclick="send()">전송</button>
+      </div>
+    </div>
+  </body>
+</html>
