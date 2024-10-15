@@ -87,7 +87,7 @@ const enterRoom = async (req, res) => {
   try {
       const room = await ottRoom.findById(roomId);
       if (!room) {
-          return res.status(404).json({ error: '해당 방을 찾을 수 없습니다.' });
+          return res.status(404).json({ error: '해당 방을 찾을 수 없습니다.'});
       }
       const currentParticipants = await EnterRoom.countDocuments({ roomId });
 

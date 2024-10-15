@@ -34,7 +34,8 @@ const addProduct = async (req, res) => {
 
 
 const getProductList = async (req, res) => {
-  const {userId} = req.params; 
+  const {userId} = req.params;
+  const {userLiked} = req.body;
 
   try {
     const products = await GroupShopping.find({ status: { $ne: '마감' } }, { 
