@@ -11,10 +11,11 @@ const createRoom = async (req, res) => {
   if (!roomName || !ottPlatform || !plan || !maxParticipants || !duration || !leaderFee || !price) {
       return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
   }
-  const user = await User.findOne({userId});
-    if (!user) {
+
+  const user = await User.findOne({ userId });
+  if (!user) {
       return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
-    }
+  }
 
   try {
       const newRoom = new ottRoom({
@@ -27,19 +28,36 @@ const createRoom = async (req, res) => {
           price,
           leaderFee,
       });
-      
+
       const savedRoom = await newRoom.save();
       const chatRoomId = savedRoom._id;
 
+      // 채팅방 자동 생성
       const initialMessage = new Message({
-        text: '채팅방이 생성되었습니다.',
-        sender: user._id,
-        roomId: chatRoomId
-    });
-    await initialMessage.save();
-    res.status(201).json(savedRoom); 
+          text: '채팅방이 생성되었습니다.',
+          sender: user._id,
+          receiver: null, // 처음 메시지는 수신자 없음
+          roomId: chatRoomId,
+      });
+      await initialMessage.save();
+
+      // 방에 방장 자동 입장
+      const enterRoomData = new EnterRoom({
+          roomId: chatRoomId,
+          userId: user._id, // 방장 ID로 입장
+          ottPlatform: ottPlatform,
+          plan: plan,
+          maxParticipants: maxParticipants,
+          duration: duration,
+          startDate: new Date(), // 시작 날짜 현재 시각으로 설정
+          price: price,
+          leaderFee: leaderFee,
+      });
+      await enterRoomData.save();
+
+      res.status(201).json(savedRoom);
   } catch (err) {
-      console.error(err); 
+      console.error(err);
       res.status(500).json({ error: '방 생성 중 오류가 발생했습니다.' });
   }
 };
@@ -82,6 +100,7 @@ const getAllRooms = async (req, res) => {
 };
 
 const enterRoom = async (req, res) => {
+  
   const { roomId } = req.params;
   const { userId } = req.body;
   try {

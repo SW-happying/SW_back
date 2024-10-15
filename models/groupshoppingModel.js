@@ -64,8 +64,21 @@ const groupProductSchema = new mongoose.Schema({
     type: String, 
     enum: ["진행중","마감"],
     default: "진행중"
-  }
-}, { timestamps: true });
+  },
+  name: {
+      type: String,
+      required:false,
+    }
+ }, { timestamps: true });
+  
+  groupProductSchema.pre('save', function(next) {
+    if (this.productName) {
+      const name = new String(this.productName);
+      this.name = name;
+    }
+    next();
+  });
+
 
 const GroupShopping = mongoose.model('GroupShopping', groupProductSchema);
 export default GroupShopping;

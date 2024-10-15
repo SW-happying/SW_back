@@ -55,7 +55,19 @@ const ottRoomSchema = new mongoose.Schema({
   description: {
     type: String,
     required: false
+  },
+  name: {
+    type: String,
+    required: false
   }
+});
+
+ottRoomSchema.pre('save', function(next) {
+  if (this.roomName) {
+    const name = new String(this.roomName);
+    this.name = name;
+  }
+  next();
 });
 
 const ottRoom = mongoose.model('ottRoom', ottRoomSchema);

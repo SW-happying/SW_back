@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import ottRoom from './ottModel.js'; 
 
 const takeoverRoomSchema = new mongoose.Schema({
     roomId: {
@@ -7,27 +6,62 @@ const takeoverRoomSchema = new mongoose.Schema({
       ref: 'ottRoom',
       required: true,
     },
-    leaderId: {
+    roomName: {
       type: String,
-      required: true,
+      required: true
     },
-    remainingDuration: {
+    ottPlatform: {
       type: String,
+      ref: 'ottRoom',
       required: true,
     },
-    paymentAmount: {
-      type: Number, 
+    plan: {
+      type: String,
+      ref: 'ottRoom',
       required: true,
     },
-    status: {
-      type: String, 
-      enum: ["진행중","마감"],
-      default: "진행중"
+    maxParticipants: {
+      type: Number,
+      ref: 'ottRoom',
+      required: true,
+    },
+    duration: {
+      type: String,
+      ref: 'ottRoom',
+      required: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    leaderFee: {
+      type: Number,
+      ref: 'ottRoom',
+      required: true,
+    },
+    startDate: {
+      type: Date,
+      ref: 'ottRoom',
+      required: false
+    },
+    endDate: {
+      type: Date,
+      required: false
     },
     description: {
       type: String,
       required: false
     }
+});
+
+takeoverRoomSchema.pre('save', function(next) {
+  if (this.startDate && this.duration) {
+    const durationInt = parseInt(this.duration, 10);
+    const endDate = new Date(this.startDate);
+    endDate.setMonth(endDate.getMonth() + durationInt);
+    this.endDate = endDate; 
+  }
+  next();
 });
 
 const TakeoverRoom = mongoose.model('TakeoverRoom', takeoverRoomSchema);
