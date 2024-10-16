@@ -6,7 +6,7 @@ import User from '../models/userModel.js';
 import ChatMessage from '../models/messageModel.js';
 
 export const createRoom = async (req, res) => {
-  const { userId, roomName, ottPlatform, plan, maxParticipants, duration, leaderFee, price } = req.body;
+  const { userId, roomName, ottPlatform, plan, maxParticipants, duration, leaderFee, price, startDate } = req.body;
 
   if (!roomName || !ottPlatform || !plan || !maxParticipants || !duration || !leaderFee || !price) {
     return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
@@ -31,7 +31,7 @@ export const createRoom = async (req, res) => {
     console.error(err);
     res.status(500).json({ error: '방 생성 중 오류가 발생했습니다.' });
   }
-};
+}
 
 export const enterRoom = async (req, res) => {
   const { roomId } = req.params;
