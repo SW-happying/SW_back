@@ -22,8 +22,8 @@ app.use('/js', express.static('./static/js'));
 app.use('/api', router);
 
 // 채팅방 페이지 제공 (동적 라우트 적용)
-app.get('/chat/:roomId', (req, res) => {
-  const { roomId } = req.params;
+app.get('/chat/:roomId/:userId', (req, res) => {
+  const { roomId, userId } = req.params;
   fs.readFile('./static/index.html', 'utf8', (error, data) => {
     if (error) {
       console.error(error);
@@ -48,26 +48,26 @@ io.on('connection', (socket) => {
   let roomId;
 
   // 새로운 유저가 입장할 때
-  socket.on('joinRoom', ({ name, roomId: room }) => {
+  socket.on('joinRoom', ({ userId, roomId: room }) => {
     roomId = room;
     socket.join(roomId);
-    socket.name = name;
-    console.log(`${name}님이 ${roomId} 방에 입장했습니다.`);
+    socket.userId = userId;
+    console.log(`${userId}님이 ${roomId} 방에 입장했습니다.`);
 
-    io.to(roomId).emit('update', { type: 'connect', name: 'server', message: `${name}님이 입장했습니다.` });
+    io.to(roomId).emit('update', { type: 'connect', userId: 'server', message: `${userId}님이 입장했습니다.` });
   });
 
   // 유저가 메시지를 전송할 때
   socket.on('message', (data) => {
-    data.name = socket.name;
+    data.userId = socket.userId;
     io.to(roomId).emit('update', data);
     console.log(`${data.name}의 메시지: ${data.message}`);
   });
 
   // 유저가 나갈 때
   socket.on('disconnect', () => {
-    if (socket.name) {
-      io.to(roomId).emit('update', { type: 'disconnect', name: 'SERVER', message: `${socket.name}님이 나갔습니다.` });
+    if (socket.userId) {
+      io.to(roomId).emit('update', { type: 'disconnect', userId: 'SERVER', message: `${socket.name}님이 나갔습니다.` });
     }
   });
 });

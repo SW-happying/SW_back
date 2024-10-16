@@ -1,22 +1,19 @@
 const socket = io();
 
 /* 접속 시 실행 */
-socket.on('connect', function() {
-  // 이름 입력받기
-  let name = prompt('반갑습니다!', '');
-  if (!name) {
-    name = '익명';
-  }
+socket.on('connect', async function () {
+  // 서버에서 userId와 roomId 가져오기
+  const { userId, roomId } = await fetchUserInfo();
 
-  // 서버에 새로운 유저가 방에 입장했다고 알리기
-  socket.emit('joinRoom', { name, roomId });
+  // 서버에 방 입장 알리기
+  socket.emit('joinRoom', { userId, roomId });
 });
 
 /* 서버로부터 데이터 받기 */
-socket.on('update', function(data) {
+socket.on('update', function (data) {
   const chat = document.getElementById('chat');
   const message = document.createElement('div');
-  const node = document.createTextNode(`${data.name}: ${data.message}`);
+  const node = document.createTextNode(`${data.userId}: ${data.message}`);
   let className = '';
 
   switch (data.type) {
@@ -52,4 +49,10 @@ function send() {
 
   // 서버로 메시지 전송
   socket.emit('message', { type: 'message', message });
+}
+
+/* 유저 정보 가져오는 함수 */
+async function fetchUserInfo() {
+  const response = await fetch('/api/getUserInfo'); // API에서 유저 정보 가져오기
+  return await response.json(); // { userId, roomId }
 }
