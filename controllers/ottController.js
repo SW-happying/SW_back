@@ -5,7 +5,7 @@ import ottLike from '../models/ottlikeModel.js';
 import User from '../models/userModel.js';
 import ChatMessage from '../models/messageModel.js';
 
-export const createRoom = async (req, res) => {
+const createRoom = async (req, res) => {
   const { userId, roomName, ottPlatform, plan, maxParticipants, duration, leaderFee, price, startDate } = req.body;
 
   if (!roomName || !ottPlatform || !plan || !maxParticipants || !duration || !leaderFee || !price || !startDate) {
@@ -33,7 +33,7 @@ export const createRoom = async (req, res) => {
   }
 }
 
-export const enterRoom = async (req, res) => {
+const enterRoom = async (req, res) => {
   const { roomId } = req.params;
   const { userId } = req.body;
 
