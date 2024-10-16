@@ -49,7 +49,7 @@ const ottRoomSchema = new mongoose.Schema({
     default: "진행중"
   },
   startDate: {
-    type: Date,
+    type: String,
     required: true
   },
   description: {

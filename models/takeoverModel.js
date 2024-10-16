@@ -40,7 +40,7 @@ const takeoverRoomSchema = new mongoose.Schema({
       required: true,
     },
     startDate: {
-      type: Date,
+      type: String,
       ref: 'ottRoom',
       required: true
     },
