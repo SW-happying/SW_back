@@ -1,14 +1,20 @@
-import express from 'express';
+import express from 'express'; 
 import cors from 'cors';
 import router from './routes/index.js';
 import connectDB from './config/dbConfig.js';
 import { createServer } from 'http';
 import { Server as SocketIO } from 'socket.io';
 import fs from 'fs';
+import path from 'path'; // path 모듈 임포트 추가
 import ChatRoom from './models/chatRoomModel.js'; // 모델 임포트 수정
+import { fileURLToPath } from 'url'; // fileURLToPath 모듈 임포트 추가
 
 const app = express();
 const PORT = 5000;
+
+// 현재 모듈의 디렉토리 경로 가져오기
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 connectDB();
 
@@ -17,6 +23,9 @@ app.use(express.json());
 app.use('/css', express.static('./static/css'));
 app.use('/js', express.static('./static/js'));
 app.use('/api', router);
+
+// uploads 폴더를 정적 파일로 제공
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', (req, res) => {
   res.send('Hello Happying..!');
