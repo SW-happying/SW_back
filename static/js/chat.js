@@ -1,58 +1,38 @@
-const socket = io();
+var socket = io();
 
-/* 접속 시 실행 */
-socket.on('connect', async function () {
-  // 서버에서 userId와 roomId 가져오기
-  const { userId, roomId } = await fetchUserInfo();
+/* 접속 되었을 때 실행 */
+socket.on('connect', function() {
+  var name = prompt('이름을 입력해주세요.', '');
+  var roomId = prompt('입장할 방 ID를 입력하세요.', '');
 
-  // 서버에 방 입장 알리기
-  socket.emit('joinRoom', { userId, roomId });
-});
-
-/* 서버로부터 데이터 받기 */
-socket.on('update', function (data) {
-  const chat = document.getElementById('chat');
-  const message = document.createElement('div');
-  const node = document.createTextNode(`${data.userId}: ${data.message}`);
-  let className = '';
-
-  switch (data.type) {
-    case 'message':
-      className = 'other';
-      break;
-    case 'connect':
-      className = 'connect';
-      break;
-    case 'disconnect':
-      className = 'disconnect';
-      break;
+  if (!name || !roomId) {
+    alert('이름과 방 ID는 필수입니다.');
+    return;
   }
 
-  message.classList.add(className);
+  // 서버에 새로운 유저가 방에 참여했다고 알림
+  socket.emit('joinRoom', { roomId, userId: name });
+});
+
+/* 서버로부터 데이터 받은 경우 */
+socket.on('update', function(data) {
+  var chat = document.getElementById('chat');
+  var message = document.createElement('div');
+  var node = document.createTextNode(`${data.name}: ${data.message}`);
   message.appendChild(node);
   chat.appendChild(message);
-  chat.scrollTop = chat.scrollHeight; // 스크롤을 자동으로 아래로
 });
 
 /* 메시지 전송 함수 */
 function send() {
-  const message = document.getElementById('messageInput').value;
-  document.getElementById('messageInput').value = '';
+  var message = document.getElementById('test').value;
+  var roomId = prompt('메시지를 보낼 방 ID를 입력하세요.', '');
 
-  const chat = document.getElementById('chat');
-  const msg = document.createElement('div');
-  const node = document.createTextNode(message);
-  msg.classList.add('me');
-  msg.appendChild(node);
-  chat.appendChild(msg);
-  chat.scrollTop = chat.scrollHeight;
+  if (!message || !roomId) {
+    alert('메시지와 방 ID는 필수입니다.');
+    return;
+  }
 
-  // 서버로 메시지 전송
-  socket.emit('message', { type: 'message', message });
-}
-
-/* 유저 정보 가져오는 함수 */
-async function fetchUserInfo() {
-  const response = await fetch('/api/getUserInfo'); // API에서 유저 정보 가져오기
-  return await response.json(); // { userId, roomId }
+  // 서버로 message 이벤트 전달 + 데이터와 함께
+  socket.emit('message', { roomId, userId: socket.name, message });
 }

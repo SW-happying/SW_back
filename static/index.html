@@ -1,19 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
     <title>채팅</title>
-    <link rel="stylesheet" href="/css/index.css" />
+    <link rel="stylesheet" href="/css/index.css">
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/js/chat.js"></script> <!-- 수정된 chat.js -->
+    <script src="/js/chat.js"></script>
   </head>
   <body>
     <div id="main">
       <div id="chat"></div>
       <div>
-        <input type="text" id="messageInput" placeholder="메시지를 입력하세요" />
-        <button onclick="send()">전송</button>
+        <input type="text" id="test" placeholder="메시지를 입력해주세요..">
+        <button onclick="sendMessage(roomId, userId)">전송</button>
       </div>
     </div>
   </body>

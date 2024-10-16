@@ -1,29 +1,25 @@
 import mongoose from 'mongoose';
 
-const messageSchema = new mongoose.Schema({
-  roomId: {
-    type: mongoose.Schema.Types.ObjectId, // 채팅방을 구분하기 위한 roomId
-    ref: 'ottRoom', // 채팅방 모델과 연결
+const chatRoomSchema = new mongoose.Schema({
+  roomName: {
+    type: String,
     required: true,
   },
-  sender: {
-    type: mongoose.Schema.Types.ObjectId, // 메시지를 보낸 사용자의 ID
-    ref: 'User', // User 모델과 연결
+  leaderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true,
   },
-  text: {
-    type: String, // 메시지 내용
-    required: true,
-  },
-  timestamp: {
-    type: Date, // 메시지가 전송된 시간
-    default: Date.now, // 기본값으로 현재 시간
-  },
-}, {
-  versionKey: false, // __v 필드를 사용하지 않도록 설정
+  users: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }],
+  messages: [{
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    message: String,
+    createdAt: { type: Date, default: Date.now }
+  }]
 });
 
-// Message 모델 생성
-const Message = mongoose.model('Message', messageSchema);
-
-export default Message;
+const ChatRoom = mongoose.model('ChatRoom', chatRoomSchema);
+export default ChatRoom;
