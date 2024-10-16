@@ -37,6 +37,6 @@ router.get('/productlist/:userId', groupshoppingController.getProductList); // �
 router.get('/products/:productId', groupshoppingController.getProductInfo); // 상세 조회
 router.post('/products/:productId', groupshoppingController.registPurchase); // 상품 구매
 router.post('/products/:productId/addlike', groupshoppingController.groupLikeHandle); // 좋아요
-router.get('/products/:productId/close', groupshoppingController.closeGroup); // 모집 마감
+router.get('/products/:productId/close', groupshoppingController.closeGroup); // 마감/ 판매자 돈 받음
 
 export default router;
