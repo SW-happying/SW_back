@@ -59,7 +59,11 @@ const ottRoomSchema = new mongoose.Schema({
   name: {
     type: String,
     required: false
-  }
+  },
+  userLiked: {
+    type: Number,
+    default: 0
+  },
 });
 
 ottRoomSchema.pre('save', function(next) {

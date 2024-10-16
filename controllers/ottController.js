@@ -168,6 +168,7 @@ const ottLikeHandle = async (req, res) => {
       await ottLike.findByIdAndDelete(ottExistingLike._id);
 
       await ottRoom.findByIdAndUpdate(roomId, { $inc: { totalLikes: -1 } });
+      await ottRoom.findByIdAndUpdate(roomId, { $set: { userLiked: 0 } });
       return res.status(200).json({ message: '좋아요가 취소되었습니다.' });
     } else {
    
@@ -175,6 +176,7 @@ const ottLikeHandle = async (req, res) => {
       await newOttLike.save();
   
       await ottRoom.findByIdAndUpdate(roomId, { $inc: { totalLikes: 1 } });
+      await ottRoom.findByIdAndUpdate(roomId, { $set: { userLiked: 1 } });
       return res.status(201).json({ message: '좋아요가 추가되었습니다.', newOttLike });
     }
   } catch (error) {

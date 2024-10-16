@@ -11,14 +11,14 @@ const getLikedList = async (req, res) => {
       path: 'productId',
       model: 'GroupShopping',
       match: { status: { $ne: '마감' } },
-      select: { productName: 1, price: 1, _id: 1, image: 1, deadline: 1, leaderFee: 1 }
+      select: { productName: 1, price: 1, _id: 1, image: 1, deadline: 1, leaderFee: 1, userLiked: 1, totalLike: 1 }
     });
 
     const likedOTTs = await ottLike.find({ userId }).populate({
       path: 'roomId',
       model: 'ottRoom', 
       match: { status: { $ne: '마감' } },
-      select: { roomName: 1, ottPlatform: 1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1, maxParticipants:1, startDate: 1 }
+      select: { roomName: 1, ottPlatform: 1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1, maxParticipants:1, userLiked: 1, totalLike: 1 }
     });
 
     const filteredLikedGroups = likedGroups.filter(group => group.productId);
