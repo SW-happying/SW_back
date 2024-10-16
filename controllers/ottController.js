@@ -8,7 +8,7 @@ import ChatMessage from '../models/messageModel.js';
 export const createRoom = async (req, res) => {
   const { userId, roomName, ottPlatform, plan, maxParticipants, duration, leaderFee, price, startDate } = req.body;
 
-  if (!roomName || !ottPlatform || !plan || !maxParticipants || !duration || !leaderFee || !price) {
+  if (!roomName || !ottPlatform || !plan || !maxParticipants || !duration || !leaderFee || !price || !startDate) {
     return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
   }
 
