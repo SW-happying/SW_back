@@ -49,8 +49,8 @@ const ottRoomSchema = new mongoose.Schema({
     default: "진행중"
   },
   startDate: {
-    type: Date,
-    required: false
+    type: String,
+    required: true
   },
   description: {
     type: String,

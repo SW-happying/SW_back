@@ -8,7 +8,6 @@ import ottRoutes from './ottRoutes.js';
 
 const router = express.Router();
 
-
 router.use('/mypage', mypageRoutes); //마이페이지 
 router.use('/groupshopping', groupshoppingRoutes); //공동구매 페이지
 router.use('/ott', ottRoutes); //ott 페이지

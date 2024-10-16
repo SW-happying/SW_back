@@ -47,7 +47,7 @@ const getPopularList = async (req, res) => {
 
     const popularOTTs = await ottRoom.find(
       { status: { $ne: '마감' } }, 
-      { roomName: 1, ottPlatform: 1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1, maxParticipants: 1 }
+      { roomName: 1, ottPlatform: 1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1, maxParticipants: 1, startDate: 1 }
     );
 
     const popularGroupsWithCategory = popularGroups.map(group => ({

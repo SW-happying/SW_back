@@ -3,62 +3,60 @@ import ottRoom from '../models/ottModel.js';
 import ottPaymentController from './ottPaymentController.js';
 import ottLike from '../models/ottlikeModel.js';
 import User from '../models/userModel.js';
-import Message from '../models/chatModel.js';
+import ChatMessage from '../models/messageModel.js';
 
 const createRoom = async (req, res) => {
-  const { userId, roomName, ottPlatform, plan, maxParticipants, duration, leaderFee, price } = req.body;
+  const { userId, roomName, ottPlatform, plan, maxParticipants, duration, leaderFee, price, startDate } = req.body;
 
-  if (!roomName || !ottPlatform || !plan || !maxParticipants || !duration || !leaderFee || !price) {
-      return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
-  }
-
-  const user = await User.findOne({ userId });
-  if (!user) {
-      return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
+  if (!roomName || !ottPlatform || !plan || !maxParticipants || !duration || !leaderFee || !price || !startDate) {
+    return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
   }
 
   try {
-      const newRoom = new ottRoom({
-          leaderId: userId,
-          roomName,
-          ottPlatform,
-          plan,
-          maxParticipants,
-          duration,
-          price,
-          leaderFee,
-      });
+    const newRoom = new ottRoom({
+      leaderId: userId,
+      roomName,
+      ottPlatform,
+      plan,
+      maxParticipants,
+      duration,
+      price,
+      leaderFee,
+      startDate,
+    });
 
-      const savedRoom = await newRoom.save();
-      const chatRoomId = savedRoom._id;
-
-      // 채팅방 자동 생성
-      const initialMessage = new Message({
-          text: '채팅방이 생성되었습니다.',
-          sender: user._id,
-          receiver: null, // 처음 메시지는 수신자 없음
-          roomId: chatRoomId,
-      });
-      await initialMessage.save();
-
-      // 방에 방장 자동 입장
-      const enterRoomData = new EnterRoom({
-          roomId: chatRoomId,
-          userId: user._id, // 방장 ID로 입장
-          ottPlatform: ottPlatform,
-          plan: plan,
-          maxParticipants: maxParticipants,
-          duration: duration,
-          startDate: new Date(), // 시작 날짜 현재 시각으로 설정
-          price: price,
-          leaderFee: leaderFee,
-      });
-      await enterRoomData.save();
-
-      res.status(201).json(savedRoom);
+    const savedRoom = await newRoom.save();
+    res.status(201).json({ roomId: savedRoom._id, message: '방이 생성되었습니다.' });
   } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: '방 생성 중 오류가 발생했습니다.' });
+    console.error(err);
+    res.status(500).json({ error: '방 생성 중 오류가 발생했습니다.' });
+  }
+}
+
+const enterRoom = async (req, res) => {
+  const { roomId } = req.params;
+  const { userId } = req.body;
+
+  try {
+    const room = await ottRoom.findById(roomId);
+    if (!room) {
+      return res.status(404).json({ error: '해당 방을 찾을 수 없습니다.' });
+    }
+
+    const currentParticipants = await EnterRoom.countDocuments({ roomId });
+    if (room.maxParticipants <= currentParticipants) {
+      return res.status(400).json({ error: '해당 방은 이미 인원이 가득 찼습니다.' });
+    }
+
+    const enterRecord = new EnterRoom({ roomId, userId, ottPlatform: room.ottPlatform, plan: room.plan, 
+      maxParticipants: room.maxParticipants, duration: room.duration, price: room.price, leaderFee: room.leaderFee 
+    });
+
+    await enterRecord.save();
+    res.status(200).json({ message: '방에 입장했습니다.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '방 입장 중 오류가 발생했습니다.' });
   }
 };
 
@@ -74,7 +72,8 @@ const getAllRooms = async (req, res) => {
       _id: 1, 
       duration: 1, 
       leaderFee: 1, 
-      maxParticipants: 1
+      maxParticipants: 1,
+      startDate: 1
     });
 
     if (!rooms || rooms.length === 0) {
@@ -98,43 +97,6 @@ const getAllRooms = async (req, res) => {
     res.status(500).json({ error: '방 목록을 불러오는 중 오류가 발생했습니다.' });
   }
 };
-
-const enterRoom = async (req, res) => {
-  
-  const { roomId } = req.params;
-  const { userId } = req.body;
-  try {
-      const room = await ottRoom.findById(roomId);
-      if (!room) {
-          return res.status(404).json({ error: '해당 방을 찾을 수 없습니다.'});
-      }
-      const currentParticipants = await EnterRoom.countDocuments({ roomId });
-
-      if (room.maxParticipants <= currentParticipants) {
-          return res.status(400).json({ error: '해당 방은 이미 인원이 가득 찼습니다.' });
-      }
-
-      const enterRoomData = new EnterRoom({
-          roomId,
-          userId,
-          ottPlatform: room.ottPlatform,  
-          plan: room.plan,              
-          maxParticipants: room.maxParticipants, 
-          duration: room.duration,        
-          startDate: room.startDate,      
-          price: room.price,              
-          leaderFee: room.leaderFee,  
-      });
-
-      await enterRoomData.save();
-
-      res.status(200).json({ message: '방에 입장하였습니다.', chatRoomURL: `/chat/${roomId}` });
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: '방 입장 중 오류가 발생했습니다.' });
-  }
-}; 
-
 
 const getRoomInfo = async (req, res) => {
   const { roomId } = req.params; 
