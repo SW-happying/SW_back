@@ -147,24 +147,11 @@ const confirmPurchase = async (req, res) => {
       return res.status(404).json({ error: '구매 기록을 찾을 수 없습니다.' });
     }
 
+    // 구매 상태를 '구매완료'로 업데이트
     purchase.status = '구매완료';
     await purchase.save();
 
-    const product = await GroupShopping.findById(purchase.productId);
-    if (!product) {
-      return res.status(404).json({ error: '상품을 찾을 수 없습니다.' });
-    }
-
-    const allPurchases = await PurchaseUser.find({ productId: purchase._id });
-    const allConfirmed = allPurchases.every(purchase => purchase.status === '구매완료');
-
-    if (allConfirmed) {
-      const totalAmount = product.totalPurchasers * (product.price + product.leaderFee);
-      await groupPaymentController.transferToLeader(product._id);
-      res.status(200).json({ message: '모든 구매가 완료되었으며, 판매자에게 포인트가 전송되었습니다.' });
-    } else {
-      res.status(200).json({ message: '구매가 완료되었습니다.' });
-    }
+    res.status(200).json({ message: '구매가 완료되었습니다.' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: '구매 중 오류가 발생하였습니다.', details: error.message });
@@ -263,21 +250,28 @@ const closeGroup = async (req, res) => {
   const { productId } = req.params;
 
   try {
+    // 해당 상품 찾기
     const product = await GroupShopping.findById(productId);
 
     if (!product) {
       return res.status(404).json({ error: '해당 상품을 찾을 수 없습니다.' });
     }
 
+    // 상품 상태를 '마감'으로 변경
     product.status = '마감';
     await product.save();
 
-    res.status(200).json({ message: '모집이 마감되었습니다.', product });
+    // 총 금액 계산 및 판매자에게 포인트 전송
+    const totalAmount = product.totalPurchasers * (product.price + product.leaderFee);
+    await groupPaymentController.transferToLeader(product._id, totalAmount);
+
+    res.status(200).json({ message: '모집이 마감되었으며, 판매자에게 포인트가 전송되었습니다.', product });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: '모집 마감 처리 중 오류가 발생하였습니다.' });
   }
 };
+
 
 export default {
   getPurchaseList,

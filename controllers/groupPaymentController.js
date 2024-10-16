@@ -31,7 +31,7 @@ const transferToPlatform = async (userId, userName, price, productId) => {
   }
 };
 
-const transferToLeader = async (productId) => {
+const transferToLeader = async (productId, totalAmount) => {
   try {
     const product = await GroupShopping.findById(productId).populate('leaderId'); 
     if (!product || !product.leaderId) {
@@ -40,20 +40,18 @@ const transferToLeader = async (productId) => {
 
     const leader = await User.findOne({ userId: product.leaderId });
 
-    const purchases = await Payment.find({ productId }); 
-    const totalPrice = purchases.reduce((sum, purchase) => sum + purchase.price, 0); 
-
-    if (totalPrice <= 0) {
+    if (totalAmount <= 0) {
       throw new Error('유효한 결제 금액이 없습니다.');
     }
 
-    leader.totalPoint += totalPrice;
+    leader.totalPoint += totalAmount;
     await leader.save();
 
     const payment = await groupPayment.create({
       userId: leader.userId,
-      userName: leaderName,
+      userName: leader.userName,
       price: totalAmount,
+      productId: product._id,
       type: 'trans_to_leader',
       status: '구매완료',
     });
