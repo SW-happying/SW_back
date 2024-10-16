@@ -68,7 +68,11 @@ const groupProductSchema = new mongoose.Schema({
   name: {
       type: String,
       required:false,
-    }
+    },
+  userLiked: {
+    type: Number,
+    default: 0,
+  }
  }, { timestamps: true });
   
   groupProductSchema.pre('save', function(next) {

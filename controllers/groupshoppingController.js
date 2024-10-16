@@ -35,7 +35,6 @@ const addProduct = async (req, res) => {
 
 const getProductList = async (req, res) => {
   const {userId} = req.params;
-  const {userLiked} = req.body;
 
   try {
     const products = await GroupShopping.find({ status: { $ne: '마감' } }, { 
@@ -234,6 +233,7 @@ const groupLikeHandle = async (req, res) => {
       await groupLike.findByIdAndDelete(groupExistingLike._id);
 
       await GroupShopping.findByIdAndUpdate(productId, { $inc: { totalLikes: -1 } });
+      await GroupShopping.findByIdAndUpdate(productId, { $set: { userLiked: 0 } });
       return res.status(200).json({ message: '좋아요가 취소되었습니다.' });
     } else {
    
@@ -241,6 +241,7 @@ const groupLikeHandle = async (req, res) => {
       await newGroupLike.save();
   
       await GroupShopping.findByIdAndUpdate(productId, { $inc: { totalLikes: 1 } });
+      await GroupShopping.findByIdAndUpdate(productId, { $set: { userLiked: 1 } });
       return res.status(201).json({ message: '좋아요가 추가되었습니다.', newGroupLike });
     }
   } catch (error) {
