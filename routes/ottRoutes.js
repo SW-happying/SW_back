@@ -18,5 +18,6 @@ router.get('/takeover/', takeoverController.gettakeoverRooms); //이어받기 �
 router.post('/takeover/', takeoverController.createTakeover); //이어받기 방 추가등록
 router.get('/takeover/:id', takeoverController.getTakeoverInfo); //이어받기 방 상세정보 (이어받기 방 _id로)
 router.post('/takeover/:id',takeoverController.payingforTakeover); //ott 서비스 결제하기
+router.post('/takeover/:id/addlike', takeoverController.takeoverLikeHandle); // ott방 좋아요
 
 export default router;

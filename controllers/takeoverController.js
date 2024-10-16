@@ -1,6 +1,7 @@
 import TakeoverRoom from '../models/takeoverModel.js'; 
 import ottRoom from '../models/ottModel.js';
 import User from '../models/userModel.js';
+import TakeoverLike from '../models/takeoverlikeModel.js';
 
 const createTakeover = async (req, res) => {
 
@@ -127,9 +128,37 @@ const payingforTakeover = async (req, res) => {
   }
 };
 
+const takeoverLikeHandle = async (req, res) => {
+  const { id } = req.params; 
+  const { userId } = req.body; 
+  
+  try {
+    const takeoverExistingLike = await TakeoverLike.findOne({ userId, roomId: id });
+
+    if (takeoverExistingLike) {
+      await TakeoverLike.findByIdAndDelete(takeoverExistingLike._id); 
+      await TakeoverRoom.findByIdAndUpdate(id, { $inc: { totalLikes: -1 } }); 
+      await TakeoverRoom.findByIdAndUpdate(id, { $set: { userLiked: 0 } }); 
+      return res.status(200).json({ message: '좋아요가 취소되었습니다.' }); 
+    } else {
+
+      const newTakeoverLike = new TakeoverLike({ userId, roomId: id }); 
+      await newTakeoverLike.save(); 
+
+      await TakeoverRoom.findByIdAndUpdate(id, { $inc: { totalLikes: 1 } }); 
+      await TakeoverRoom.findByIdAndUpdate(id, { $set: { userLiked: 1 } }); 
+      return res.status(201).json({ message: '좋아요가 추가되었습니다.', newTakeoverLike }); 
+    }
+  } catch (error) {
+    console.error(error); 
+    res.status(500).json({ error: '좋아요 처리 중 오류가 발생하였습니다.' }); 
+  }
+};
+
 export default {
   createTakeover,
   gettakeoverRooms, 
   getTakeoverInfo,
-  payingforTakeover
+  payingforTakeover,
+  takeoverLikeHandle
 };
