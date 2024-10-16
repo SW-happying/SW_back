@@ -50,7 +50,7 @@ const ottRoomSchema = new mongoose.Schema({
   },
   startDate: {
     type: Date,
-    required: false
+    required: true
   },
   description: {
     type: String,

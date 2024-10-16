@@ -6,9 +6,9 @@ import User from '../models/userModel.js';
 import ChatRoom from '../models/chatroomModel.js';
 
 const createRoom = async (req, res) => {
-  const { userId, roomName, ottPlatform, plan, maxParticipants, duration, leaderFee, price } = req.body;
+  const { userId, roomName, ottPlatform, plan, maxParticipants, duration, leaderFee, price, startDate } = req.body;
 
-  if (!roomName || !ottPlatform || !plan || !maxParticipants || !duration || !leaderFee || !price) {
+  if (!roomName || !ottPlatform || !plan || !maxParticipants || !duration || !leaderFee || !price || !startDate ) {
       return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
   }
   const user = await User.findOne({userId});
@@ -26,6 +26,7 @@ const createRoom = async (req, res) => {
           duration,
           price,
           leaderFee,
+          startDate
       });
       
       const savedRoom = await newRoom.save();
@@ -35,7 +36,7 @@ const createRoom = async (req, res) => {
         roomId: chatRoomId,
         messages: [],
       });
-      await chatRoom.save(); // 빈 메시지 리스트와 함께 채팅 방 저장
+      await chatRoom.save(); 
   
       res.status(201).json(savedRoom);
     } catch (err) {
@@ -56,7 +57,8 @@ const getAllRooms = async (req, res) => {
       _id: 1, 
       duration: 1, 
       leaderFee: 1, 
-      maxParticipants: 1 
+      maxParticipants: 1,
+      startDate: 1
     });
 
     if (!rooms || rooms.length === 0) {
@@ -95,8 +97,6 @@ const enterRoom = async (req, res) => {
     if (room.maxParticipants <= currentParticipants) {
       return res.status(400).json({ error: '해당 방은 이미 인원이 가득 찼습니다.' });
     }
-
-    // 방에 참여 기록
     const enterRoomData = new EnterRoom({
       roomId,
       userId,
@@ -105,22 +105,21 @@ const enterRoom = async (req, res) => {
       maxParticipants: room.maxParticipants, 
       duration: room.duration,        
       price: room.price,              
-      leaderFee: room.leaderFee,  
+      leaderFee: room.leaderFee,
+      startDate: room.startDate  
     });
 
     await enterRoomData.save();
 
-    // 채팅 방 메시지를 로드
     const chatRoom = await ChatRoom.findOne({ roomId });
     if (!chatRoom) {
       return res.status(404).json({ error: '채팅 방을 찾을 수 없습니다.' });
     }
 
-    // 사용자에게 채팅 방 URL과 메시지를 포함한 응답
     res.status(200).json({
       message: '방에 입장하였습니다.',
-      chatRoomURL: `/chat/${roomId}`,
-      messages: chatRoom.messages // 기존 메시지 포함
+      chatRoomURL: `/chat/${roomId}/${userId}`,
+      messages: chatRoom.messages 
     });
   } catch (error) {
     console.error(error);
