@@ -1,15 +1,42 @@
 import express from 'express';
 import groupshoppingController from '../controllers/groupshoppingController.js';
+import multer from 'multer';
+import path from 'path';
 
 const router = express.Router();
 
-router.get('/productlist/:userId', groupshoppingController.getProductList); // 공동구매 상품 목록
-router.post('/products', groupshoppingController.addProduct); // 공동 구매 상품 등록 
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './uploads'); 
+  },
+  filename: function (req, file, cb) {
+    const filename = Date.now() + path.extname(file.originalname); 
+    cb(null, filename);
+  }
+});
 
-//productId = groupshopping모델의 _id
-router.get('/products/:productId', groupshoppingController.getProductInfo); // 상품 상세 조회
-router.post('/products/:productId', groupshoppingController.registPurchase); // 상품 구매 
-router.post('/products/:productId/addlike', groupshoppingController.groupLikeHandle); // 좋아요 누르기 
-router.get('/products/:productId/close', groupshoppingController.closeGroup); //모집 마감 
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, 
+  fileFilter: (req, file, cb) => {
+    const fileTypes = /jpeg|jpg|png|gif/;
+    const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimeType = fileTypes.test(file.mimetype);
+
+    if (extname && mimeType) {
+      return cb(null, true);
+    } else {
+      cb(new Error('이미지 파일만 업로드 가능합니다.'));
+    }
+  },
+});
+
+router.post('/products', upload.single('image'), groupshoppingController.addProduct);
+
+router.get('/productlist/:userId', groupshoppingController.getProductList); // 상품 목록
+router.get('/products/:productId', groupshoppingController.getProductInfo); // 상세 조회
+router.post('/products/:productId', groupshoppingController.registPurchase); // 상품 구매
+router.post('/products/:productId/addlike', groupshoppingController.groupLikeHandle); // 좋아요
+router.get('/products/:productId/close', groupshoppingController.closeGroup); // 모집 마감
 
 export default router;

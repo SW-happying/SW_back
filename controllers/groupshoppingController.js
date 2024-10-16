@@ -6,36 +6,45 @@ import groupLike from '../models/grouplikeModel.js';
 
 const addProduct = async (req, res) => {
   try {
-    const { userId, productName, price, options, image, description, deadline, leaderFee } = req.body;
+    let { userId, productName, price, options, description, deadline, leaderFee } = req.body;
 
-    const user = await User.findOne({userId});
+    if (typeof options === 'string') {
+      try {
+        options = JSON.parse(options); 
+      } catch (error) {
+        console.error(error);
+        return res.status(400).json({ error: 'options 필드의 JSON 파싱에 실패했습니다.' });
+      }
+    }
+
+    const user = await User.findOne({ userId });
     if (!user) {
       return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
     }
+
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
 
     const newProduct = new GroupShopping({
       productName,
       leaderId: userId,
       price,
       options,
-      image,
+      image: imagePath,
       description,
       deadline,
-      leaderFee
+      leaderFee,
     });
 
     await newProduct.save();
     res.status(201).json({ message: '상품이 추가되었습니다.', product: newProduct });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: '상품 추가 중 오류가 발생하였습니다.', details: error.message});
+    res.status(500).json({ error: '상품 추가 중 오류가 발생하였습니다.', details: error.message });
   }
 };
 
-
 const getProductList = async (req, res) => {
   const {userId} = req.params;
-  const {userLiked} = req.body;
 
   try {
     const products = await GroupShopping.find({ status: { $ne: '마감' } }, { 
@@ -55,6 +64,7 @@ const getProductList = async (req, res) => {
         ...product.toObject(),
         likeCount,
         userLiked: userLiked ? 1 : 0, 
+        image: product.image,
       };
     }));
 

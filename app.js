@@ -37,25 +37,21 @@ app.get('/chat', (req, res) => {
   });
 });
 
-// 새로운 소켓 이벤트 핸들러 추가
 io.on('connection', (socket) => {
 
   socket.on('joinRoom', ({ roomId, userId }) => {
-    socket.join(roomId); // 해당 방에 참여
+    socket.join(roomId); 
 
     console.log(`${userId}님이 ${roomId}방에 입장했습니다.`);
-    
-    // 해당 방에 입장했다고 알림
+
     io.to(roomId).emit('update', { type: 'connect', name: userId, message: `${userId}님이 입장하셨습니다.` });
   });
 
   socket.on('message', ({ roomId, message, userId }) => {
     console.log(`${userId}의 메시지: ${message}`);
     
-    // 메시지를 저장하고 해당 방에 브로드캐스트
     io.to(roomId).emit('update', { name: userId, message });
 
-    // DB에 메시지 저장
     ChatRoom.findByIdAndUpdate(
       roomId,
       { $push: { messages: { userId, message } } },
