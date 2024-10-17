@@ -1,6 +1,6 @@
 import ChatRoom from "../models/chatRoomModel";
+import ChatMessage from "../models/messageModel";
 
-// 채팅방 생성
 export const createChatRoom = async (req, res) => {
   const { roomName, userId } = req.body;
   
@@ -14,7 +14,6 @@ export const createChatRoom = async (req, res) => {
   }
 };
 
-// 채팅방 목록 가져오기
 export const getChatRooms = async (req, res) => {
   try {
       const rooms = await ChatRoom.find();
@@ -24,7 +23,6 @@ export const getChatRooms = async (req, res) => {
   }
 };
 
-// 특정 채팅방에 입장
 export const joinChatRoom = async (req, res) => {
   const { roomId, userId } = req.body;
 
@@ -35,7 +33,7 @@ export const joinChatRoom = async (req, res) => {
               room.participants.push(userId);
               await room.save();
           }
-          const messages = await Message.find({ roomId }); // 채팅 내역 가져오기
+          const messages = await ChatMessage.find({ roomId }); 
           res.status(200).json({ room, messages });
       } else {
           res.status(404).json({ message: '채팅방을 찾을 수 없습니다.' });
@@ -45,12 +43,11 @@ export const joinChatRoom = async (req, res) => {
   }
 };
 
-// 메시지 전송
 export const sendMessage = async (req, res) => {
   const { roomId, sender, content } = req.body;
 
   try {
-      const newMessage = new Message({ roomId, sender, content });
+      const newMessage = new ChatMessage({ roomId, sender, content });
       await newMessage.save();
       res.status(201).json(newMessage);
   } catch (error) {

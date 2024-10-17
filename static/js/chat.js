@@ -1,7 +1,6 @@
 var socket = io();
 let roomId, userId;
 
-// 접속되었을 때 실행
 socket.on('connect', function() {
   userId = prompt('이름을 입력해주세요.', '');
   roomId = prompt('입장할 방 ID를 입력하세요.', '');
@@ -11,11 +10,21 @@ socket.on('connect', function() {
     return;
   }
 
-  // 방에 참여
   socket.emit('joinRoom', { roomId, userId });
 });
 
-// 서버로부터 데이터 수신
+socket.on('loadMessages', function(messages) {
+  const chat = document.getElementById('chat');
+  chat.innerHTML = ''; 
+
+  messages.forEach((msg) => {
+    const message = document.createElement('div');
+    const node = document.createTextNode(`${msg.userId}: ${msg.message}`);
+    message.appendChild(node);
+    chat.appendChild(message);
+  });
+});
+
 socket.on('update', function(data) {
   const chat = document.getElementById('chat');
   const message = document.createElement('div');
@@ -24,7 +33,6 @@ socket.on('update', function(data) {
   chat.appendChild(message);
 });
 
-// 메시지 전송 함수
 function sendMessage() {
   const message = document.getElementById('test').value;
 
@@ -33,7 +41,6 @@ function sendMessage() {
     return;
   }
 
-  // 서버로 메시지 전달
   socket.emit('message', { roomId, userId, message });
   document.getElementById('test').value = ''; // 입력창 초기화
 }
