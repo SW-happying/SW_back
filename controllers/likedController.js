@@ -99,20 +99,43 @@ const getPopularList = async (req, res) => {
 };
 
 const getAllList = async (req, res) => {
+  const { searchTerm } = req.body; // 요청의 body에서 searchTerm을 가져옵니다.
+
   try {
+    // 검색어가 존재하면 정규 표현식을 사용하여 검색합니다.
+    const searchQuery = searchTerm ? {
+      $or: [
+        // GroupShopping에서 여러 필드 검색
+        {
+          productName: { $regex: searchTerm, $options: 'i' },
+        },
+        // OTT에서 여러 필드 검색
+        {
+          roomName: { $regex: searchTerm, $options: 'i' },
+        },
+        {
+          ottPlatform: { $regex: searchTerm, $options: 'i' },
+        },
+        // TakeoverRoom에서 여러 필드 검색
+        {
+          roomName: { $regex: searchTerm, $options: 'i' },
+        },
+      ]
+    } : {};
+
     const groups = await GroupShopping.find(
-      { status: { $ne: '마감' } }, 
-      { productName: 1, price: 1, _id: 1, image: 1, deadline: 1, leaderFee: 1 } 
+      { ...searchQuery, status: { $ne: '마감' } }, 
+      { productName: 1, price: 1, image: 1, deadline: 1, leaderFee: 1, totalLikes: 1, userLiked: 1 } 
     );
 
     const otts = await ottRoom.find(
-      { status: { $ne: '마감' } }, 
-      { roomName: 1, ottPlatform: 1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1, maxParticipants: 1, startDate: 1 }
+      { ...searchQuery, status: { $ne: '마감' } }, 
+      { roomName: 1, ottPlatform: 1, price: 1, duration: 1, leaderFee: 1, maxParticipants: 1, startDate: 1, image: 1, userLiked: 1, totalLikes: 1 }
     );
 
     const takeovers = await TakeoverRoom.find(
-      { status: { $ne: '마감' } },
-      { roomName: 1, totalLikes: 1, userLiked: 1, image: 1 } 
+      { ...searchQuery, status: { $ne: '마감' } },
+      { roomName: 1, totalLikes: 1, userLiked: 1, image: 1, ottPlatform: 1, price: 1, leaderFee: 1, endDate: 1 } 
     );
 
     const combinedList = [
@@ -127,6 +150,7 @@ const getAllList = async (req, res) => {
     res.status(500).json({ error: '전체 목록을 가져오는 중 오류가 발생했습니다.' });
   }
 };
+
 
 export default {
   getLikedList,
