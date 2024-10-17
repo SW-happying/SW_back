@@ -49,14 +49,12 @@ const getTakeoverInfo = async (req, res) => {
     if (!takeoverRoom) {
       return res.status(404).json({ error: '해당 방을 찾을 수 없습니다.' });
     }
-
     const { roomId } = takeoverRoom;
 
     const ottRoomInfo = await ottRoom.findById(roomId);
     if (!ottRoomInfo) {
       return res.status(404).json({ error: '해당 roomId에 대한 OTT 정보를 찾을 수 없습니다.' });
     }
-
     res.status(200).json({
       takeoverRoom,
       ottRoomInfo,
@@ -87,7 +85,7 @@ const gettakeoverRooms = async (req, res) => {
         userLiked: userLiked ? 1 : 0, 
       };
     }));
-    
+    //
     res.status(200).json(roomsWithLikes); // 변수 이름 수정
   } catch (error) {    
     console.error(error);
