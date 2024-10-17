@@ -76,9 +76,6 @@ const getAllRooms = async (req, res) => {
       startDate: 1
     });
 
-    if (!rooms || rooms.length === 0) {
-      return res.status(404).json({ error: '현재 등록된 방이 없습니다.' });
-    }
 
     const roomsWithLikes = await Promise.all(rooms.map(async (room) => {
       const likeCount = await ottLike.countDocuments({ roomId: room._id }); 
