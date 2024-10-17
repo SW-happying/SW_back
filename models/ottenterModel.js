@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import ottRoom from './ottModel.js';
 
 const enterRoomSchema = new mongoose.Schema({
     roomId: {
@@ -42,7 +43,7 @@ const enterRoomSchema = new mongoose.Schema({
       required: true,
     },
     startDate: {
-      type: String,
+      type: Date,  
       ref: 'ottRoom',
       required: false
     },
@@ -56,12 +57,29 @@ const enterRoomSchema = new mongoose.Schema({
     }
 });
 
-enterRoomSchema.pre('save', function(next) {
+enterRoomSchema.pre('save', async function(next) {
+  console.log('Pre-save middleware is running...');
+  if (!this.startDate) {
+    const OttRoom = await ottRoom.findById(this.roomId);
+    if (OttRoom && OttRoom.startDate) {
+      this.startDate = OttRoom.startDate;
+    }
+  }
+
+  console.log(`startDate: ${this.startDate}, duration: ${this.duration}`);
+
   if (this.startDate && this.duration) {
+    const startDate = new Date(this.startDate);
     const durationInt = parseInt(this.duration, 10);
-    const endDate = new Date(this.startDate);
-    endDate.setMonth(endDate.getMonth() + durationInt);
-    this.endDate = endDate; 
+    if (!isNaN(startDate) && !isNaN(durationInt)) {  
+      const endDate = new Date(startDate);
+      endDate.setMonth(endDate.getMonth() + durationInt);
+      this.endDate = endDate;
+    } else {
+      console.log('Invalid startDate or duration');
+    }
+  } else {
+    console.log('startDate or duration is missing');
   }
   next();
 });
