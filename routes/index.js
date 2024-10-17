@@ -15,4 +15,10 @@ router.use('/mylikes', likedRoutes);  //관심목록
 router.use('/myott', usingRoutes); //이용중
 router.get('/home', likedController.getPopularList); //인기목록 불러오기
 router.get('/all', likedController.getAllList);
+router.get('/chat/:roomId', (req, res) => {
+  const { roomId } = req.params;
+  
+  // Load the HTML file for chat UI or handle it based on your frontend approach
+  res.sendFile('path_to_your_static_chat_file.html', { root: './static/' });
+});
 export default router;

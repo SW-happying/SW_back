@@ -3,7 +3,7 @@ import ottRoom from '../models/ottModel.js';
 import ottPaymentController from './ottPaymentController.js';
 import ottLike from '../models/ottlikeModel.js';
 import User from '../models/userModel.js';
-import ChatMessage from '../models/messageModel.js';
+import ChatRoom from '../models/chatroomModel.js';
 
 const createRoom = async (req, res) => {
   const { userId, roomName, ottPlatform, plan, maxParticipants, duration, leaderFee, price, startDate } = req.body;
@@ -26,6 +26,11 @@ const createRoom = async (req, res) => {
     });
 
     const savedRoom = await newRoom.save();
+
+    // Create a corresponding chat room
+    const newChatRoom = new ChatRoom({ roomId: savedRoom._id });
+    await newChatRoom.save();
+
     res.status(201).json({ roomId: savedRoom._id, message: '방이 생성되었습니다.' });
   } catch (err) {
     console.error(err);
@@ -53,12 +58,16 @@ const enterRoom = async (req, res) => {
     });
 
     await enterRecord.save();
-    res.status(200).json({ message: '방에 입장했습니다.' });
+
+    // 채팅방 URL을 반환
+    const chatRoom = await ChatRoom.findOne({ roomName: room.roomName });
+    res.status(200).json({ message: '방에 입장했습니다.', chatUrl: `/chat/${chatRoom._id}` });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: '방 입장 중 오류가 발생했습니다.' });
   }
 };
+
 
 const getAllRooms = async (req, res) => {
   const {userId} = req.params;

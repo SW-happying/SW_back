@@ -2,8 +2,10 @@ var socket = io();
 let roomId, userId;
 
 socket.on('connect', function() {
+  // roomId will now be fetched from the URL
+  const urlParams = new URLSearchParams(window.location.search);
+  roomId = urlParams.get('roomId');
   userId = prompt('이름을 입력해주세요.', '');
-  roomId = prompt('입장할 방 ID를 입력하세요.', '');
 
   if (!userId || !roomId) {
     alert('이름과 방 ID는 필수입니다.');

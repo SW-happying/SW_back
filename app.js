@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';  
 import ChatMessage from './models/messageModel.js';
 import { fileURLToPath } from 'url'; 
+import chatRouter from './routes/chatRoutes.js'; // New import for chat routes
 
 const app = express();
 const PORT = 5000;
@@ -22,7 +23,7 @@ app.use(express.json());
 app.use('/css', express.static('./static/css'));
 app.use('/js', express.static('./static/js'));
 app.use('/api', router);
-
+app.use('/chat', chatRouter); // Chat route handling
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -32,17 +33,6 @@ app.get('/', (req, res) => {
 
 const server = createServer(app);
 const io = new SocketIO(server);
-
-app.get('/chat', (req, res) => {
-  fs.readFile('./static/index.html', (error, data) => {
-    if (error) {
-      console.error(error);
-      return res.sendStatus(500);
-    }
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(data);
-  });
-});
 
 io.on('connection', (socket) => {
   socket.on('joinRoom', async ({ roomId, userId }) => {
