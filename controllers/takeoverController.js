@@ -69,18 +69,32 @@ const getTakeoverInfo = async (req, res) => {
 
 
 const gettakeoverRooms = async (req, res) => {
+  const { userId } = req.params;
+
   try {
     const takeoverRooms = await TakeoverRoom.find().populate('roomId'); 
     if (!takeoverRooms || takeoverRooms.length === 0) {
       return res.status(404).json({ error: '현재 등록된 이어받기 방이 없습니다.' });
     }
+
+    const roomsWithLikes = await Promise.all(takeoverRooms.map(async (room) => {
+      const likeCount = await TakeoverLike.countDocuments({ roomId: room._id }); 
+      const userLiked = await TakeoverLike.exists({ roomId: room._id, userId }); 
+
+      return {
+        ...room.toObject(),
+        likeCount,
+        userLiked: userLiked ? 1 : 0, 
+      };
+    }));
     
-    res.status(200).json(takeoverRooms);
+    res.status(200).json(roomsWithLikes); // 변수 이름 수정
   } catch (error) {    
     console.error(error);
     res.status(500).json({ error: '이어받기 방 목록을 불러오는 중 오류가 발생했습니다.' });
   }
 };
+
 
 const payingforTakeover = async (req, res) => {
   const { id } = req.params;
@@ -148,24 +162,24 @@ const payingforTakeover = async (req, res) => {
 };
 
 const takeoverLikeHandle = async (req, res) => {
-  const { id } = req.params; 
+  const { roomId } = req.params; 
   const { userId } = req.body; 
   
   try {
-    const takeoverExistingLike = await TakeoverLike.findOne({ userId, roomId: id });
-
+    // 이미 좋아요가 있는지 확인
+    const takeoverExistingLike = await TakeoverLike.findOne({ userId, roomId });
+    console.log('Existing like:', takeoverExistingLike);
     if (takeoverExistingLike) {
+      // 좋아요 취소
       await TakeoverLike.findByIdAndDelete(takeoverExistingLike._id); 
-      await TakeoverRoom.findByIdAndUpdate(id, { $inc: { totalLikes: -1 } }); 
-      await TakeoverRoom.findByIdAndUpdate(id, { $set: { userLiked: 0 } }); 
+      await TakeoverRoom.findByIdAndUpdate(roomId, { $inc: { totalLikes: -1 }, $set: { userLiked: 0 } }); 
       return res.status(200).json({ message: '좋아요가 취소되었습니다.' }); 
     } else {
-
-      const newTakeoverLike = new TakeoverLike({ userId, roomId: id }); 
+      // 새로운 좋아요 추가
+      const newTakeoverLike = new TakeoverLike({ userId, roomId }); 
       await newTakeoverLike.save(); 
 
-      await TakeoverRoom.findByIdAndUpdate(id, { $inc: { totalLikes: 1 } }); 
-      await TakeoverRoom.findByIdAndUpdate(id, { $set: { userLiked: 1 } }); 
+      await TakeoverRoom.findByIdAndUpdate(roomId, { $inc: { totalLikes: 1 }, $set: { userLiked: 1 } }); 
       return res.status(201).json({ message: '좋아요가 추가되었습니다.', newTakeoverLike }); 
     }
   } catch (error) {
