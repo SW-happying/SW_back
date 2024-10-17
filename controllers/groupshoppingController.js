@@ -1,8 +1,8 @@
 import GroupShopping from '../models/groupshoppingModel.js';
-import groupPaymentController from './groupPaymentController.js'
 import PurchaseUser from '../models/buyerModel.js';
 import User from '../models/userModel.js';
 import groupLike from '../models/grouplikeModel.js';
+import groupPaymentController from './groupPaymentController.js';
 
 const addProduct = async (req, res) => {
   try {
@@ -22,6 +22,7 @@ const addProduct = async (req, res) => {
       return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
     }
 
+    // 이미지 경로 설정
     const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
 
     const newProduct = new GroupShopping({
@@ -29,14 +30,19 @@ const addProduct = async (req, res) => {
       leaderId: userId,
       price,
       options,
-      image: imagePath,
+      image: imagePath, // 이미지 경로 저장
       description,
       deadline,
       leaderFee,
     });
 
     await newProduct.save();
-    res.status(201).json({ message: '상품이 추가되었습니다.', product: newProduct });
+
+    // 이미지 경로를 포함한 응답 반환
+    res.status(201).json({ 
+      message: '상품이 추가되었습니다.', 
+      product: newProduct // product 객체에 이미지 경로 포함됨
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: '상품 추가 중 오류가 발생하였습니다.', details: error.message });
@@ -44,14 +50,14 @@ const addProduct = async (req, res) => {
 };
 
 const getProductList = async (req, res) => {
-  const {userId} = req.params;
+  const { userId } = req.params;
 
   try {
     const products = await GroupShopping.find({ status: { $ne: '마감' } }, { 
       productName: 1, 
       price: 1, 
       _id: 1, 
-      image: 1, 
+      image: 1,  // 이미지 경로 포함
       deadline: 1, 
       leaderFee: 1 
     });
@@ -64,13 +70,13 @@ const getProductList = async (req, res) => {
         ...product.toObject(),
         likeCount,
         userLiked: userLiked ? 1 : 0, 
-        image: product.image,
+        image: product.image, // 이미지 경로 반환
       };
     }));
 
     res.status(200).json(productsWithLikes);
   } catch (error) {
-    res.status(500).json({ error: '공동구매 상품목록을 불러오지 못했습니다.' });
+    res.status(500).json({ error: '공동구매 상품 목록을 불러오지 못했습니다.' });
   }
 };
 
@@ -81,13 +87,13 @@ const getProductInfo = async (req, res) => {
     res.status(200).json(product);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: '공동구매 상품 상세정보를 불러오지 못했습니다.' });
+    res.status(500).json({ error: '공동구매 상품 상세 정보를 불러오지 못했습니다.' });
   }
 };
 
 const registPurchase = async (req, res) => {
   try {
-    const {productId } = req.params;
+    const { productId } = req.params;
     const { userId, userName, address, phone, selectOptions } = req.body;
 
     const user = await User.findOne({ userId });
@@ -100,7 +106,7 @@ const registPurchase = async (req, res) => {
       return res.status(404).json({ error: '상품을 찾을 수 없습니다.' });
     }
 
-    product.totalPurchasers += 1; 
+    product.totalPurchasers += 1;
     await product.save();
 
     const newPurchase = new PurchaseUser({
@@ -119,13 +125,11 @@ const registPurchase = async (req, res) => {
 
     const totalPrice = product.price + product.leaderFee;
 
-    // 포인트 전송을 시도하고 오류가 발생하면 구매를 취소합니다.
     try {
       await groupPaymentController.transferToPlatform(userId, userName, totalPrice, productId);
     } catch (error) {
-      // 포인트 전송 실패 시 구매를 취소하고 에러 메시지를 반환합니다.
-      await PurchaseUser.deleteOne({ _id: newPurchase._id }); // 구매 기록 삭제
-      product.totalPurchasers -= 1; // 총 구매자 수 감소
+      await PurchaseUser.deleteOne({ _id: newPurchase._id });
+      product.totalPurchasers -= 1;
       await product.save();
 
       return res.status(500).json(console.error(error));
@@ -147,7 +151,6 @@ const confirmPurchase = async (req, res) => {
       return res.status(404).json({ error: '구매 기록을 찾을 수 없습니다.' });
     }
 
-    // 구매 상태를 '구매완료'로 업데이트
     purchase.status = '구매완료';
     await purchase.save();
 
@@ -158,17 +161,16 @@ const confirmPurchase = async (req, res) => {
   }
 };
 
-
 const getPurchaseList = async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const user = await User.find({ userId }); 
+    const user = await User.find({ userId });
     if (!user) {
       return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
     }
 
-    const purchases = await PurchaseUser.find( {userId: user._id}  );
+    const purchases = await PurchaseUser.find({ userId: user._id });
     if (!purchases || purchases.length === 0) {
       return res.status(404).json({ error: '구매 기록이 없습니다.' });
     }
@@ -181,24 +183,24 @@ const getPurchaseList = async (req, res) => {
 };
 
 const getBuyerList = async (req, res) => {
-  const { productId } = req.params;  
+  const { productId } = req.params;
 
   try {
-    const purchases = await PurchaseUser.find( {productId} );
+    const purchases = await PurchaseUser.find({ productId });
     if (!purchases || purchases.length === 0) {
-      return res.status(404).json({ error: '이 상품에 대한 구매자가 없습ㄴ다.' });
+      return res.status(404).json({ error: '이 상품에 대한 구매자가 없습니다.' });
     }
 
     res.status(200).json(purchases);
   } catch (error) {
-    console.error(error)
+    console.error(error);
     res.status(500).json({ error: '구매자 목록을 불러오는 중 오류가 발생했습니다.' });
   }
 };
 
 const updatePurchaseStatus = async (req, res) => {
   const { productId } = req.params;
-  const { newStatus } = req.body; 
+  const { newStatus } = req.body;
 
   try {
     const purchases = await PurchaseUser.find({ productId });
@@ -208,7 +210,7 @@ const updatePurchaseStatus = async (req, res) => {
 
     await Promise.all(
       purchases.map(async (purchase) => {
-        purchase.status = newStatus; 
+        purchase.status = newStatus;
         await purchase.save();
       })
     );
@@ -234,10 +236,9 @@ const groupLikeHandle = async (req, res) => {
       await GroupShopping.findByIdAndUpdate(productId, { $set: { userLiked: 0 } });
       return res.status(200).json({ message: '좋아요가 취소되었습니다.' });
     } else {
-   
       const newGroupLike = new groupLike({ userId, productId });
       await newGroupLike.save();
-  
+
       await GroupShopping.findByIdAndUpdate(productId, { $inc: { totalLikes: 1 } });
       await GroupShopping.findByIdAndUpdate(productId, { $set: { userLiked: 1 } });
       return res.status(201).json({ message: '좋아요가 추가되었습니다.', newGroupLike });
@@ -252,18 +253,15 @@ const closeGroup = async (req, res) => {
   const { productId } = req.params;
 
   try {
-    // 해당 상품 찾기
     const product = await GroupShopping.findById(productId);
 
     if (!product) {
       return res.status(404).json({ error: '해당 상품을 찾을 수 없습니다.' });
     }
 
-    // 상품 상태를 '마감'으로 변경
     product.status = '마감';
     await product.save();
 
-    // 총 금액 계산 및 판매자에게 포인트 전송
     const totalAmount = product.totalPurchasers * (product.price + product.leaderFee);
     await groupPaymentController.transferToLeader(product._id, totalAmount);
 
@@ -273,7 +271,6 @@ const closeGroup = async (req, res) => {
     res.status(500).json({ error: '모집 마감 처리 중 오류가 발생하였습니다.' });
   }
 };
-
 
 export default {
   getPurchaseList,
