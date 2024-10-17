@@ -2,10 +2,8 @@ var socket = io();
 let roomId, userId;
 
 socket.on('connect', function() {
-  // roomId will now be fetched from the URL
-  const urlParams = new URLSearchParams(window.location.search);
-  roomId = urlParams.get('roomId');
   userId = prompt('이름을 입력해주세요.', '');
+  roomId = prompt('입장할 방 ID를 입력하세요.', '');
 
   if (!userId || !roomId) {
     alert('이름과 방 ID는 필수입니다.');
@@ -44,5 +42,7 @@ function sendMessage() {
   }
 
   socket.emit('message', { roomId, userId, message });
+  console.log('메시지 전송:', { roomId, userId, message }); // 메시지 전송 로그 추가
   document.getElementById('test').value = ''; // 입력창 초기화
 }
+

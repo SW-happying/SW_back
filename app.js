@@ -8,7 +8,6 @@ import fs from 'fs';
 import path from 'path';  
 import ChatMessage from './models/messageModel.js';
 import { fileURLToPath } from 'url'; 
-import chatRouter from './routes/chatRoutes.js'; // New import for chat routes
 
 const app = express();
 const PORT = 5000;
@@ -23,7 +22,7 @@ app.use(express.json());
 app.use('/css', express.static('./static/css'));
 app.use('/js', express.static('./static/js'));
 app.use('/api', router);
-app.use('/chat', chatRouter); // Chat route handling
+
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -34,14 +33,24 @@ app.get('/', (req, res) => {
 const server = createServer(app);
 const io = new SocketIO(server);
 
+app.get('/chat', (req, res) => {
+  fs.readFile('./static/index.html', (error, data) => {
+    if (error) {
+      console.error(error);
+      return res.sendStatus(500);
+    }
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(data);
+  });
+});
+
 io.on('connection', (socket) => {
   socket.on('joinRoom', async ({ roomId, userId }) => {
     socket.join(roomId);
     console.log(`${userId}님이 ${roomId}방에 입장했습니다.`);
-
+    
     try {
       const messages = await ChatMessage.find({ roomId }).sort({ createdAt: 1 });
-
       socket.emit('loadMessages', messages);
     } catch (error) {
       console.error('메시지 로딩 중 오류:', error);
@@ -59,10 +68,10 @@ io.on('connection', (socket) => {
     const newMessage = new ChatMessage({ roomId, userId, message });
 
     try {
-      await newMessage.save(); 
-      io.to(roomId).emit('update', { name: userId, message }); 
+      await newMessage.save();
+      io.to(roomId).emit('update', { name: userId, message });
     } catch (error) {
-      console.error('메시지 저장 중 오류:', error);
+      console.error('메시지 저장 중 오류:', error); // 오류 로그 추가
     }
   });
 });
