@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 const takeoverRoomSchema = new mongoose.Schema({
   leaderId: {
     type: String,
-    ref: 'User',
     required: true
   },
   roomId: {
