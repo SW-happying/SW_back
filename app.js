@@ -5,14 +5,13 @@ import connectDB from './config/dbConfig.js';
 import { createServer } from 'http';
 import { Server as SocketIO } from 'socket.io';
 import fs from 'fs';
-import path from 'path'; // path 모듈 임포트 추가
-import ChatRoom from './models/chatRoomModel.js'; // 모델 임포트 수정
-import { fileURLToPath } from 'url'; // fileURLToPath 모듈 임포트 추가
+import path from 'path';  
+import ChatMessage from './models/messageModel.js';
+import { fileURLToPath } from 'url'; 
 
 const app = express();
 const PORT = 5000;
 
-// 현재 모듈의 디렉토리 경로 가져오기
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -24,7 +23,7 @@ app.use('/css', express.static('./static/css'));
 app.use('/js', express.static('./static/js'));
 app.use('/api', router);
 
-// uploads 폴더를 정적 파일로 제공
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', (req, res) => {
@@ -45,12 +44,18 @@ app.get('/chat', (req, res) => {
   });
 });
 
-// 소켓 이벤트 설정
 io.on('connection', (socket) => {
   socket.on('joinRoom', async ({ roomId, userId }) => {
     socket.join(roomId);
     console.log(`${userId}님이 ${roomId}방에 입장했습니다.`);
-    
+
+    try {
+      const messages = await ChatMessage.find({ roomId }).sort({ createdAt: 1 });
+
+      socket.emit('loadMessages', messages);
+    } catch (error) {
+      console.error('메시지 로딩 중 오류:', error);
+    }
     io.to(roomId).emit('update', {
       type: 'connect',
       name: userId,
@@ -60,19 +65,18 @@ io.on('connection', (socket) => {
 
   socket.on('message', async ({ roomId, message, userId }) => {
     console.log(`${userId}의 메시지: ${message}`);
-    io.to(roomId).emit('update', { name: userId, message });
+
+    const newMessage = new ChatMessage({ roomId, userId, message });
 
     try {
-      await ChatRoom.findByIdAndUpdate(
-        roomId,
-        { $push: { messages: { userId, message } } },
-        { new: true }
-      );
+      await newMessage.save(); 
+      io.to(roomId).emit('update', { name: userId, message }); 
     } catch (error) {
       console.error('메시지 저장 중 오류:', error);
     }
   });
 });
+
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`서버가 ${PORT} 포트에서 실행 중입니다.`);
