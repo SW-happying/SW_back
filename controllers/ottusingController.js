@@ -1,12 +1,12 @@
 import EnterRoom from '../models/ottenterModel.js';
-import OTTRoom from '../models/ottrRoomModel.js'; // Assuming you have a model for OTT rooms
+import ottRoom from '../models/ottModel.js';
 
 const getUsingRooms = async (req, res) => {
     const { userId } = req.params; 
     try {
         // Find rooms the user is in or rooms they created
         const joinedRooms = await EnterRoom.find({ userId }).populate('roomId');
-        const createdRooms = await OTTRoom.find({ creatorId: userId }); // Fetch rooms created by the user
+        const createdRooms = await ottRoom.find({ creatorId: userId }); // Fetch rooms created by the user
 
         // Combine the two lists
         const allRooms = [...joinedRooms, ...createdRooms];
