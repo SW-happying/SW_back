@@ -4,13 +4,9 @@ import ottRoom from '../models/ottModel.js';
 const getUsingRooms = async (req, res) => {
     const { userId } = req.params; 
     try {
-        // Find rooms the user is in or rooms they created
         const joinedRooms = await EnterRoom.find({ userId }).populate('roomId');
-        const createdRooms = await ottRoom.find({ creatorId: userId }); // Fetch rooms created by the user
-
-        // Combine the two lists
+        const createdRooms = await ottRoom.find({ leaderId: userId }); 
         const allRooms = [...joinedRooms, ...createdRooms];
-
         res.status(200).json(allRooms);
     } catch (error) {
         console.error(error);

@@ -11,7 +11,7 @@ router.get('/party/:roomId', ottController.getRoomInfo); //파티원 모집방 �
 router.get('/party/:roomId/close', ottController.closeParty); // 모집 마감
 router.post('/party/:roomId/addlike', ottController.ottLikeHandle); // ott방 좋아요
 router.post('/party/:roomId/chat', ottController.enterRoom); //채팅방 입장...해야함
-router.post('/party/:roomId/chat/:userId',ottController.payingForOtt); //ott 서비스 결제하기
+router.get('/party/:roomId/chat/:userId',ottController.payingForOtt); //ott 서비스 결제하기
 
 //이어받기 섹션
 router.get('/takeover/', takeoverController.gettakeoverRooms); //이어받기 방 목록 불러오기
