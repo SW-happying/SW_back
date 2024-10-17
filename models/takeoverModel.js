@@ -10,6 +10,14 @@ const takeoverRoomSchema = new mongoose.Schema({
     ref: 'ottRoom',
     required: true,
   },
+  userLiked: {
+    type: Number,
+    default: 0
+  },
+  totalLikes: {
+    type: Number,
+    default: 0
+  },
   roomName: {
     type: String,
     required: true

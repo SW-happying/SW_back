@@ -165,11 +165,13 @@ const getPurchaseList = async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const user = await User.find({ userId });
+    // userId로 단일 유저를 찾음
+    const user = await User.findOne({ userId });
     if (!user) {
       return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
     }
 
+    // user._id와 일치하는 모든 PurchaseUser 기록을 찾음
     const purchases = await PurchaseUser.find({ userId: user._id });
     if (!purchases || purchases.length === 0) {
       return res.status(404).json({ error: '구매 기록이 없습니다.' });
@@ -181,6 +183,7 @@ const getPurchaseList = async (req, res) => {
     res.status(500).json({ error: '구매 목록을 불러오는 중 오류가 발생했습니다.' });
   }
 };
+
 
 const getBuyerList = async (req, res) => {
   const { productId } = req.params;
