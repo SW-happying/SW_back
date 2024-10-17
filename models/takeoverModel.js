@@ -1,14 +1,18 @@
 import mongoose from 'mongoose';
 
 const takeoverRoomSchema = new mongoose.Schema({
-    roomId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'ottRoom',
-      required: true,
-    },
-    roomName: {
-      type: String,
-      required: true
+  leaderId: {
+    type: String,
+    required: true
+  },
+  roomId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ottRoom',
+    required: true,
+  },
+  roomName: {
+    type: String,
+    required: true
     },
     ottPlatform: {
       type: String,

@@ -2,6 +2,7 @@ import TakeoverRoom from '../models/takeoverModel.js';
 import ottRoom from '../models/ottModel.js';
 import User from '../models/userModel.js';
 import TakeoverLike from '../models/takeoverlikeModel.js';
+import EnterRoom from '../models/ottenterModel.js';
 
 const createTakeover = async (req, res) => {
 
@@ -84,18 +85,16 @@ const gettakeoverRooms = async (req, res) => {
 const payingforTakeover = async (req, res) => {
   const { id } = req.params;
   const { userId } = req.body;
-
-
   try {
     const takeoverRoom = await TakeoverRoom.findById(id);
     if (!takeoverRoom) {
       return res.status(404).json({ error: '해당 상품을 찾을 수 없습니다.' });
     }
 
-    const { paymentAmount, leaderId } = takeoverRoom; 
+    const { price, leaderId, roomId } = takeoverRoom;
 
-    const buyer = await User.findOne({userId});
-    const leader = await User.findOne({userId: leaderId});
+    const buyer = await User.findOne({ userId });
+    const leader = await User.findOne({ userId: leaderId });
 
     if (!buyer) {
       return res.status(404).json({ error: '구매자를 찾을 수 없습니다.' });
@@ -105,26 +104,46 @@ const payingforTakeover = async (req, res) => {
       return res.status(404).json({ error: '리더를 찾을 수 없습니다.' });
     }
 
-    if (buyer.points < paymentAmount) {
+    if (buyer.points < price) {
       return res.status(400).json({ error: '포인트가 부족합니다.' });
     }
 
-    buyer.points -= paymentAmount; 
-    leader.points += paymentAmount; 
+    buyer.points -= price;
+    leader.points += price;
 
     await buyer.save();
     await leader.save();
 
-    const socket = req.app.get('socketio'); 
-    socket.to(roomId).emit('leaveRoom', { roomId, userId: leaderId });
-    socket.to(roomId).emit('joinRoom', { roomId, userId });
+    const newEnterRoom = new EnterRoom({
+      roomId: roomId,
+      userId: buyer.userId,
+      ottPlatform: takeoverRoom.ottPlatform,
+      plan: takeoverRoom.plan,
+      maxParticipants: takeoverRoom.maxParticipants,
+      duration: takeoverRoom.duration,
+      price: takeoverRoom.price,
+      leaderFee: takeoverRoom.leaderFee,
+      startDate: takeoverRoom.startDate
+    });
+
+    await newEnterRoom.save();
+    await EnterRoom.findOneAndUpdate(
+      { roomId: roomId, userId: leader.userId },
+      { $set: { status: '판매완료' } },
+      { new: true }
+    );
+
+    // const socket = req.app.get('socketio');
+    // socket.to(roomId).emit('leaveRoom', { roomId, userId: leaderId });
+    // socket.to(roomId).emit('joinRoom', { roomId, userId });
 
     res.status(200).json({
-      message: `구매자 ${buyer.userId}의 포인트가 ${paymentAmount}만큼 차감되고, 리더 ${leader.userId}에게 포인트가 전송되었습니다.`
+      message: `구매자 ${buyer.userId}의 포인트가 ${price}만큼 차감되고, 리더 ${leader.userId}에게 포인트가 전송되었습니다.`,
+      newEnterRoom
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: '포인트 전송 중 오류가 발생했습니다.' });
+    res.status(500).json({ error: '포인트 전송 및 구매 처리 중 오류가 발생했습니다.' });
   }
 };
 

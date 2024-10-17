@@ -54,6 +54,10 @@ const enterRoomSchema = new mongoose.Schema({
     description: {
       type: String,
       required: false
+    },
+    status: {
+      type: String,
+      required: false
     }
 });
 
