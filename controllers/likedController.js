@@ -91,8 +91,6 @@ const getPopularList = async (req, res) => {
     
     const sortedList = combinedList.slice(0, 10); 
 
-
-
     res.status(200).json(sortedList);
   } catch (error) {
     console.error(error);
@@ -100,7 +98,38 @@ const getPopularList = async (req, res) => {
   }
 };
 
+const getAllList = async (req, res) => {
+  try {
+    const groups = await GroupShopping.find(
+      { status: { $ne: '마감' } }, 
+      { productName: 1, price: 1, _id: 1, image: 1, deadline: 1, leaderFee: 1 } 
+    );
+
+    const otts = await ottRoom.find(
+      { status: { $ne: '마감' } }, 
+      { roomName: 1, ottPlatform: 1, plan: 1, price: 1, _id: 1, duration: 1, leaderFee: 1, maxParticipants: 1, startDate: 1 }
+    );
+
+    const takeovers = await TakeoverRoom.find(
+      { status: { $ne: '마감' } },
+      { roomName: 1, totalLikes: 1, userLiked: 1, image: 1 } 
+    );
+
+    const combinedList = [
+      ...groups,
+      ...otts,
+      ...takeovers, 
+    ];
+
+    res.status(200).json(combinedList);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: '전체 목록을 가져오는 중 오류가 발생했습니다.' });
+  }
+};
+
 export default {
   getLikedList,
   getPopularList,
+  getAllList,
 };
