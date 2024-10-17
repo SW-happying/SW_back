@@ -26,8 +26,6 @@ const createRoom = async (req, res) => {
     });
 
     const savedRoom = await newRoom.save();
-
-    await enterRecord.save();
     res.status(201).json({ roomId: savedRoom._id, message: '방이 생성되었습니다.' });
   } catch (err) {
     console.error(err);

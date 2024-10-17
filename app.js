@@ -1,13 +1,13 @@
-import express from 'express'; 
+import express from 'express';
 import cors from 'cors';
 import router from './routes/index.js';
 import connectDB from './config/dbConfig.js';
 import { createServer } from 'http';
 import { Server as SocketIO } from 'socket.io';
 import fs from 'fs';
-import path from 'path';  
+import path from 'path';
 import ChatMessage from './models/messageModel.js';
-import { fileURLToPath } from 'url'; 
+import { fileURLToPath } from 'url';
 
 const app = express();
 const PORT = 5000;
@@ -22,18 +22,11 @@ app.use(express.json());
 app.use('/css', express.static('./static/css'));
 app.use('/js', express.static('./static/js'));
 app.use('/api', router);
-
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.get('/', (req, res) => {
-  res.send('Hello Happying..!');
-});
+app.get('/chat/:roomId/:userId', (req, res) => {
+  const { roomId, userId } = req.params;
 
-const server = createServer(app);
-const io = new SocketIO(server);
-
-app.get('/chat', (req, res) => {
   fs.readFile('./static/index.html', (error, data) => {
     if (error) {
       console.error(error);
@@ -44,22 +37,29 @@ app.get('/chat', (req, res) => {
   });
 });
 
+const server = createServer(app);
+const io = new SocketIO(server);
+
 io.on('connection', (socket) => {
   socket.on('joinRoom', async ({ roomId, userId }) => {
     socket.join(roomId);
     console.log(`${userId}님이 ${roomId}방에 입장했습니다.`);
-    
+
     try {
       const messages = await ChatMessage.find({ roomId }).sort({ createdAt: 1 });
       socket.emit('loadMessages', messages);
     } catch (error) {
       console.error('메시지 로딩 중 오류:', error);
     }
+
+    // 입장 메시지를 브로드캐스트하는 부분을 주석 처리하거나 삭제
+    /*
     io.to(roomId).emit('update', {
       type: 'connect',
       name: userId,
       message: `${userId}님이 입장하셨습니다.`,
     });
+    */
   });
 
   socket.on('message', async ({ roomId, message, userId }) => {
@@ -71,11 +71,10 @@ io.on('connection', (socket) => {
       await newMessage.save();
       io.to(roomId).emit('update', { name: userId, message });
     } catch (error) {
-      console.error('메시지 저장 중 오류:', error); // 오류 로그 추가
+      console.error('메시지 저장 중 오류:', error);
     }
   });
 });
-
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`서버가 ${PORT} 포트에서 실행 중입니다.`);
