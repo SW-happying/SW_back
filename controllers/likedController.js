@@ -91,9 +91,7 @@ const getPopularList = async (req, res) => {
     
     const sortedList = combinedList.slice(0, 10); 
 
-    if (sortedList.length === 0) {
-      return res.status(404).json({ message: '인기 있는 상품이 없습니다.' });
-    }
+
 
     res.status(200).json(sortedList);
   } catch (error) {
