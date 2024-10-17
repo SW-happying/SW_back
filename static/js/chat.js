@@ -2,16 +2,21 @@ var socket = io();
 let roomId, userId;
 
 socket.on('connect', function() {
-  userId = prompt('이름을 입력해주세요.', '');
-  roomId = prompt('입장할 방 ID를 입력하세요.', '');
+  // URL에서 roomId와 userId 추출
+  const urlParams = window.location.pathname.split('/');
+  roomId = urlParams[2];  // URL 경로에서 roomId 추출
+  userId = urlParams[3];  // URL 경로에서 userId 추출
 
   if (!userId || !roomId) {
-    alert('이름과 방 ID는 필수입니다.');
+    alert('유효한 방 ID와 사용자 ID가 필요합니다.');
     return;
   }
 
+  console.log('연결된 roomId:', roomId);  
+  console.log('연결된 userId:', userId);  
   socket.emit('joinRoom', { roomId, userId });
 });
+
 
 socket.on('loadMessages', function(messages) {
   const chat = document.getElementById('chat');
@@ -42,5 +47,6 @@ function sendMessage() {
   }
 
   socket.emit('message', { roomId, userId, message });
+  console.log('메시지 전송:', { roomId, userId, message }); 
   document.getElementById('test').value = ''; // 입력창 초기화
 }

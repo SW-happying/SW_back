@@ -14,5 +14,5 @@ router.use('/ott', ottRoutes); //ott 페이지
 router.use('/mylikes', likedRoutes);  //관심목록
 router.use('/myott', usingRoutes); //이용중
 router.get('/home', likedController.getPopularList); //인기목록 불러오기
-router.post('/all', likedController.getAllList);
+router.get('/all', likedController.getAllList);
 export default router;
