@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const takeoverRoomSchema = new mongoose.Schema({
-  leaderId: {
+  leadId: {
     type: String,
     required: true
   },

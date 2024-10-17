@@ -20,7 +20,7 @@ const createTakeover = async (req, res) => {
     }
 
     const takeoverRoomData = new TakeoverRoom({
-      leaderId: userId,
+      leadId: userId,
       roomId,
       roomName,
       price,
@@ -91,10 +91,10 @@ const payingforTakeover = async (req, res) => {
       return res.status(404).json({ error: '해당 상품을 찾을 수 없습니다.' });
     }
 
-    const { price, leaderId, roomId } = takeoverRoom;
+    const { price, leadId, roomId } = takeoverRoom;
 
     const buyer = await User.findOne({ userId });
-    const leader = await User.findOne({ userId: leaderId });
+    const leader = await User.findOne({ userId: leadId });
 
     if (!buyer) {
       return res.status(404).json({ error: '구매자를 찾을 수 없습니다.' });
