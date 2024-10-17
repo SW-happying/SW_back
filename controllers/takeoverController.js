@@ -82,7 +82,6 @@ const gettakeoverRooms = async (req, res) => {
   }
 };
 
-
 const payingforTakeover = async (req, res) => {
   const { id } = req.params;
   const { userId } = req.body;
@@ -134,9 +133,9 @@ const payingforTakeover = async (req, res) => {
       { new: true }
     );
 
-    const socket = req.app.get('socketio');
-    socket.to(roomId).emit('leaveRoom', { roomId, userId: leaderId });
-    socket.to(roomId).emit('joinRoom', { roomId, userId });
+    // const socket = req.app.get('socketio');
+    // socket.to(roomId).emit('leaveRoom', { roomId, userId: leaderId });
+    // socket.to(roomId).emit('joinRoom', { roomId, userId });
 
     res.status(200).json({
       message: `구매자 ${buyer.userId}의 포인트가 ${price}만큼 차감되고, 리더 ${leader.userId}에게 포인트가 전송되었습니다.`,
