@@ -103,7 +103,7 @@ const payingforTakeover = async (req, res) => {
       return res.status(404).json({ error: '해당 상품을 찾을 수 없습니다.' });
     }
 
-    const { price, leadId, roomId } = takeoverRoom;
+    const { price, leadId, roomId, leaderFee } = takeoverRoom;
 
     const buyer = await User.findOne({ userId });
     const leader = await User.findOne({ userId: leadId });
@@ -120,8 +120,8 @@ const payingforTakeover = async (req, res) => {
       return res.status(400).json({ error: '포인트가 부족합니다.' });
     }
 
-    buyer.points -= price;
-    leader.points += price;
+    buyer.totalPoint -= (price+leaderFee);
+    leader.totalPoint += (price+leaderFee);
 
     await buyer.save();
     await leader.save();
@@ -150,7 +150,7 @@ const payingforTakeover = async (req, res) => {
     // socket.to(roomId).emit('joinRoom', { roomId, userId });
 
     res.status(200).json({
-      message: `구매자 ${buyer.userId}의 포인트가 ${price}만큼 차감되고, 리더 ${leader.userId}에게 포인트가 전송되었습니다.`,
+      message: `구매자 ${buyer.userId}의 포인트가 ${price+leaderFee}만큼 차감되고, 리더 ${leader.userId}에게 포인트가 전송되었습니다.`,
       newEnterRoom
     });
   } catch (error) {
